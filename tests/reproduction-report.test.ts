@@ -78,11 +78,13 @@ describe("renderReproductionReport", () => {
   });
 
   it("redacts secrets that leak into worker fields", () => {
+    // Fake token assembled at runtime so no token-shaped literal sits in source.
+    const fakePat = "ghp_" + "a".repeat(36);
     const md = renderReproductionReport({
       issue: makeIssue(),
-      result: makeResult({ summary: "leaked GITHUB_TOKEN=ghp_abcdefghijklmnopqrstuvwxyz0123456789" }),
+      result: makeResult({ summary: `leaked GITHUB_TOKEN=${fakePat}` }),
     });
-    expect(md).not.toContain("ghp_abcdefghijklmnopqrstuvwxyz0123456789");
+    expect(md).not.toContain(fakePat);
     expect(md).toContain("[REDACTED]");
   });
 });
