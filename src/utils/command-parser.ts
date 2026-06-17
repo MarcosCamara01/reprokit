@@ -33,13 +33,14 @@ export function parseIssueCommand(raw: string): IssueCommand {
   const text = (raw ?? "").trim();
   if (!text) return { type: "unknown", raw };
 
-  // Find the first whitespace-delimited token that begins with "/".
+  // Find the first line that begins with a slash command.
   const commandLine =
     text
       .split(/\r?\n/)
       .map((line) => line.trim())
-      .find((line) => /(^|\s)\/[a-z]/i.test(line)) ?? text;
+      .find((line) => /^\/[a-z]/i.test(line));
 
+  if (!commandLine) return { type: "unknown", raw };
   const tokenMatch = commandLine.match(/\/([a-z]+)(?:\s+([a-z]+))?/i);
   if (!tokenMatch) return { type: "unknown", raw };
 
