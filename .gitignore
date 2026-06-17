@@ -1,0 +1,14 @@
+node_modules/
+.env
+.env.local
+.env.*.local
+
+# Per-issue agent run workspaces (clones, logs, reports). Never commit these.
+.runs/
+
+# Build / tooling
+dist/
+.eve/
+.vercel/
+*.log
+.DS_Store
