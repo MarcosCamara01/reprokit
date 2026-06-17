@@ -21,7 +21,16 @@ behavior, and reuse that signal to confirm fixes when browser checks are enabled
    migrations). The `safe-exec` layer blocks these; do not try to work around it.
 6. Keep workers isolated — workers must never share a working directory.
 
-## Commands you respond to (in issue comments)
+## Command surfaces
+
+The `/repro`, `/fix`, `/fix codex`, `/fix claude`, `/compare`, and `/stop`
+commands are **issue-comment commands** for GitHub/Linear webhooks, and they are
+also mirrored by the local project CLI (`npm run cli -- repro|fix|compare|stop`).
+They are not Eve TUI slash commands and will not appear in the `eve dev` `/help`
+menu. In the Eve TUI, explain this distinction and ask the user for the
+repository/issue number or the action they want to test.
+
+## Commands you respond to (in issue comments or project CLI)
 
 - `/repro` — reproduce the bug and post a reproduction report.
 - `/fix` — fix using the default worker (after approval).

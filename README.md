@@ -168,6 +168,11 @@ npm run cli -- stop    --issue 123
 
 (`--owner/--repo` default to `GITHUB_OWNER`/`GITHUB_REPO`.)
 
+> Eve's interactive TUI has its own built-in `/help` slash menu (`/new`, `/model`,
+> `/deploy`, etc.). The `/repro`, `/fix`, and `/compare` commands in this repo
+> are GitHub/Linear issue-comment commands plus local CLI verbs; they are not
+> registered as Eve TUI slash commands.
+
 ## 11. Try `/repro`
 
 1. Create an issue (example below), then comment `/repro`.
