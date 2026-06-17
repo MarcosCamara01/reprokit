@@ -2,7 +2,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { parseIssueCommand, type IssueCommand } from "../utils/command-parser.ts";
 import { buildGitHubWorkflow } from "../app.ts";
 import { createLogger } from "../utils/logger.ts";
-import type { IssueRef } from "../types.ts";
+import type { IssueRef, WorkerProvider } from "../types.ts";
 
 const log = createLogger("webhook");
 const GENERATED_COMMENT_PREFIXES = [
@@ -39,12 +39,14 @@ export function verifyGitHubSignature(
 
 export interface ParsedWebhook {
   ref: IssueRef;
-  command: IssueCommand;
+  commands: IssueCommand[];
+  autoWorker?: WorkerProvider;
 }
 
 /**
  * Extract an actionable command from a GitHub webhook payload.
- * Supports `issue_comment` (created) and `issues` (opened, with a command in body).
+ * Supports `issue_comment` (created), `issues` (opened with a command in body),
+ * and optional automatic repro/fix for newly opened issues.
  * Returns null for events/payloads we don't act on (e.g. PR comments, no command).
  */
 export function parseWebhookEvent(
@@ -59,14 +61,17 @@ export function parseWebhookEvent(
     if (isGeneratedAgentComment(body)) return null;
     const command = parseIssueCommand(body);
     if (command.type === "unknown") return null;
-    return { ref: refFrom(payload), command };
+    return { ref: refFrom(payload), commands: [command] };
   }
 
   if (eventName === "issues") {
     if (payload.action !== "opened") return null;
     const command = parseIssueCommand(payload.issue?.body ?? "");
-    if (command.type === "unknown") return null;
-    return { ref: refFrom(payload), command };
+    if (command.type !== "unknown") return { ref: refFrom(payload), commands: [command] };
+
+    const auto = autoOpenedIssueCommands();
+    if (!auto) return null;
+    return { ref: refFrom(payload), ...auto };
   }
 
   return null;
@@ -75,6 +80,31 @@ export function parseWebhookEvent(
 function isGeneratedAgentComment(body: string): boolean {
   const trimmed = body.trimStart();
   return GENERATED_COMMENT_PREFIXES.some((prefix) => trimmed.startsWith(prefix));
+}
+
+function envFlag(name: string): boolean {
+  const raw = process.env[name]?.toLowerCase();
+  return raw === "1" || raw === "true" || raw === "yes" || raw === "on";
+}
+
+function autoOpenedIssueCommands():
+  | { commands: IssueCommand[]; autoWorker?: WorkerProvider }
+  | null {
+  const shouldFix = envFlag("AUTO_FIX_ON_NEW_ISSUE");
+  const shouldRepro = shouldFix || envFlag("AUTO_REPRO_ON_NEW_ISSUE");
+  if (!shouldRepro) return null;
+
+  const worker = autoIssueWorker();
+  const commands: IssueCommand[] = [{ type: "repro" }];
+  if (!shouldFix) return worker ? { commands, autoWorker: worker } : { commands };
+
+  commands.push(worker ? { type: "fix", provider: worker } : { type: "fix" });
+  return worker ? { commands, autoWorker: worker } : { commands };
+}
+
+function autoIssueWorker(): WorkerProvider | undefined {
+  const raw = (process.env.AUTO_ISSUE_WORKER ?? process.env.AUTO_FIX_WORKER)?.toLowerCase();
+  return raw === "codex" || raw === "claude" ? raw : undefined;
 }
 
 function refFrom(payload: any): IssueRef {
@@ -109,15 +139,23 @@ export async function handleWebhook(args: {
   const parsed = parseWebhookEvent(args.eventName, payload);
   if (!parsed) return { handled: false, reason: "no actionable command" };
 
-  const { ref, command } = parsed;
+  const { ref, commands, autoWorker } = parsed;
   if (!ref.owner || !ref.repo || !ref.id) {
     return { handled: false, reason: "missing repo/issue coordinates" };
   }
 
-  log.info("Handling command from webhook", { ref, command });
+  log.info("Handling commands from webhook", { ref, commands });
   const workflow = buildGitHubWorkflow(ref.owner, ref.repo);
   // Run async; webhook responses should return quickly. Errors are logged.
-  void workflow.dispatch(ref, command).catch((err) => {
+  void (async () => {
+    for (const command of commands) {
+      if (command.type === "repro" && autoWorker) {
+        await workflow.runRepro(ref, autoWorker);
+      } else {
+        await workflow.dispatch(ref, command);
+      }
+    }
+  })().catch((err) => {
     log.error("Workflow dispatch failed", { error: String(err) });
   });
 

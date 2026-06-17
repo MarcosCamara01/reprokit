@@ -12,7 +12,7 @@ the issue, and opens a pull request only when the fix passes verification.
 The project is built to be safe by default:
 
 - It never auto-merges.
-- It only reacts to explicit issue commands.
+- By default, it only reacts to explicit issue commands.
 - It works in isolated `.runs/issue-<number>/` checkouts.
 - It redacts secrets before posting logs to GitHub.
 - It opens PRs for humans to review.
@@ -54,6 +54,26 @@ The `/fix` pipeline is intentionally conservative:
 7. Run project checks such as `typecheck`, `lint`, `test`, and `build`.
 8. Run a post-fix reproduction to verify the bug no longer reproduces.
 9. Push a branch and open a PR only after the checks and verification pass.
+
+### Automatic intake
+
+Newly opened issues with no slash command are ignored by default. To diagnose
+them automatically, set:
+
+```env
+AUTO_REPRO_ON_NEW_ISSUE=1
+```
+
+To run the full diagnose-and-fix flow automatically, set:
+
+```env
+AUTO_FIX_ON_NEW_ISSUE=1
+AUTO_ISSUE_WORKER=codex # or claude
+```
+
+When `AUTO_ISSUE_WORKER` is blank, the fix uses `DEFAULT_WORKER`. Explicit issue
+body commands such as `/repro`, `/fix claude`, or `/compare` always take
+precedence over the automatic flow.
 
 ## How It Works
 
@@ -153,6 +173,9 @@ Expected response:
 | Variable | Required | What it is |
 | --- | --- | --- |
 | `DEFAULT_WORKER` | No | Default worker for `/fix`; use `codex` or `claude`. |
+| `AUTO_FIX_ON_NEW_ISSUE` | No | Set to `1` to run diagnosis and fix automatically for newly opened issues without a command. |
+| `AUTO_REPRO_ON_NEW_ISSUE` | No | Set to `1` to run diagnosis only for newly opened issues without a command. |
+| `AUTO_ISSUE_WORKER` | No | Worker for automatic intake; leave blank to use `DEFAULT_WORKER`. |
 | `CODEX_BIN` | No | Command or path for Codex CLI. Defaults to `codex`. |
 | `CLAUDE_BIN` | No | Command or path for Claude Code CLI. Defaults to `claude`. |
 | `WORKER_TIMEOUT_MS` | No | Timeout for a single worker run. Defaults to 15 minutes. |

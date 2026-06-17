@@ -104,7 +104,7 @@ export class IssueWorkflow {
   }
 
   // ── /repro ───────────────────────────────────────────────────────────────
-  async runRepro(ref: IssueRef): Promise<void> {
+  async runRepro(ref: IssueRef, providerOverride?: WorkerProvider): Promise<void> {
     const issue = await this.provider.getIssue(ref.id);
     const key = issue.number ?? issue.id;
     let state = this.initState(issue);
@@ -139,7 +139,7 @@ export class IssueWorkflow {
     }
     state = this.transition(key, state, "ENV_PREPARED");
 
-    const worker = getWorker(this.config.defaultWorker);
+    const worker = getWorker(providerOverride ?? this.config.defaultWorker);
     state = this.transition(key, state, "REPRO_RUNNING", `worker=${worker.provider}`);
     const result = await worker.runRepro({
       provider: worker.provider,
