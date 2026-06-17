@@ -10,6 +10,7 @@ node_modules/
 dist/
 .output/
 .eve/
+.workflow-data/
 .vercel/
 *.log
 .DS_Store

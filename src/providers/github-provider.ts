@@ -1,7 +1,7 @@
-import type { IssueContext, IssueComment } from "../types.js";
-import { GitHubClient, githubClientFromEnv } from "../github/github-client.js";
-import type { IssueProvider } from "./issue-provider.js";
-import { parseBug } from "./parse-bug.js";
+import type { IssueContext, IssueComment } from "../types.ts";
+import { GitHubClient, githubClientFromEnv } from "../github/github-client.ts";
+import type { IssueProvider } from "./issue-provider.ts";
+import { parseBug } from "./parse-bug.ts";
 
 export interface GitHubProviderConfig {
   owner: string;

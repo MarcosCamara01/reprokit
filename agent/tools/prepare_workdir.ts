@@ -1,9 +1,9 @@
 import { defineTool } from "eve/tools";
 import { z } from "zod";
-import { githubProvider } from "../../src/tool-helpers.js";
-import { runPaths, ensureRunDirs } from "../../src/utils/paths.js";
-import { prepareWorkdir } from "../../src/workflow/prepare-workdir.js";
-import { logger } from "../../src/utils/logger.js";
+import { githubProvider } from "../../src/tool-helpers.ts";
+import { runPaths, ensureRunDirs } from "../../src/utils/paths.ts";
+import { prepareWorkdir } from "../../src/workflow/prepare-workdir.ts";
+import { logger } from "../../src/utils/logger.ts";
 
 export default defineTool({
   description:

@@ -1,16 +1,16 @@
 import { existsSync } from "node:fs";
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
-import type { IssueContext } from "../types.js";
-import { safeExec } from "../utils/safe-exec.js";
+import type { IssueContext } from "../types.ts";
+import { safeExec } from "../utils/safe-exec.ts";
 import {
   detectPackageManager,
   detectScripts,
   installArgs,
   type DetectedScripts,
   type PackageManager,
-} from "../utils/package-manager.js";
-import type { Logger } from "../utils/logger.js";
+} from "../utils/package-manager.ts";
+import type { Logger } from "../utils/logger.ts";
 
 export interface PrepareWorkdirInput {
   issue: IssueContext;

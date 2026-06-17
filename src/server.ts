@@ -1,6 +1,6 @@
 import { createServer, type IncomingMessage } from "node:http";
-import { handleWebhook } from "./github/github-webhook.js";
-import { createLogger } from "./utils/logger.js";
+import { handleWebhook } from "./github/github-webhook.ts";
+import { createLogger } from "./utils/logger.ts";
 
 /**
  * Standalone webhook server (Phase 1 path). This is the simplest way to run the

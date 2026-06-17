@@ -1,20 +1,20 @@
-import type { CodingWorker } from "./coding-worker.js";
+import type { CodingWorker } from "./coding-worker.ts";
 import {
   coerceFixResult,
   coerceReproResult,
   extractJsonResult,
   writeRawOutput,
-} from "./coding-worker.js";
+} from "./coding-worker.ts";
 import type {
   FixWorkerInput,
   FixWorkerResult,
   ReproWorkerInput,
   ReproWorkerResult,
-} from "../types.js";
-import { buildFixPrompt, buildReproPrompt } from "./prompts.js";
-import { commandExists, safeExec } from "../utils/safe-exec.js";
-import { redactSecrets } from "../utils/redact-secrets.js";
-import { MockWorker } from "./mock-worker.js";
+} from "../types.ts";
+import { buildFixPrompt, buildReproPrompt } from "./prompts.ts";
+import { commandExists, safeExec } from "../utils/safe-exec.ts";
+import { redactSecrets } from "../utils/redact-secrets.ts";
+import { MockWorker } from "./mock-worker.ts";
 import { dirname } from "node:path";
 import { readFileSync } from "node:fs";
 

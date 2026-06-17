@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { renderReproductionReport, summarizeReportForComment } from "../src/reports/reproduction-report.js";
-import type { IssueContext, ReproWorkerResult } from "../src/types.js";
+import { renderReproductionReport, summarizeReportForComment } from "../src/reports/reproduction-report.ts";
+import type { IssueContext, ReproWorkerResult } from "../src/types.ts";
 
 function makeIssue(): IssueContext {
   return {

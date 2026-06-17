@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseIssueCommand, hasIssueCommand } from "../src/utils/command-parser.js";
+import { parseIssueCommand, hasIssueCommand } from "../src/utils/command-parser.ts";
 
 describe("parseIssueCommand", () => {
   it("parses /repro", () => {

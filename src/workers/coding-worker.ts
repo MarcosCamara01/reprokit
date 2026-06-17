@@ -6,7 +6,7 @@ import type {
   ReproWorkerInput,
   ReproWorkerResult,
   WorkerProvider,
-} from "../types.js";
+} from "../types.ts";
 
 /**
  * A coding worker is an EXTERNAL agent (Codex CLI, Claude Code CLI, …) that runs

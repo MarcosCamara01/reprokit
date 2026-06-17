@@ -1,13 +1,13 @@
 import { defineTool } from "eve/tools";
 import { z } from "zod";
 import { writeFileSync } from "node:fs";
-import { githubProvider, readWorkerResult } from "../../src/tool-helpers.js";
-import { runPaths, ensureRunDirs } from "../../src/utils/paths.js";
+import { githubProvider, readWorkerResult } from "../../src/tool-helpers.ts";
+import { runPaths, ensureRunDirs } from "../../src/utils/paths.ts";
 import {
   renderReproductionReport,
   summarizeReportForComment,
-} from "../../src/reports/reproduction-report.js";
-import type { ReproWorkerResult } from "../../src/types.js";
+} from "../../src/reports/reproduction-report.ts";
+import type { ReproWorkerResult } from "../../src/types.ts";
 
 export default defineTool({
   description:

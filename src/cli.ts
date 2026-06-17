@@ -10,9 +10,9 @@
  * Owner/repo default to GITHUB_OWNER / GITHUB_REPO from the environment.
  * Set WORKER_MOCK=1 to exercise the flow without configured workers.
  */
-import { buildGitHubWorkflow } from "./app.js";
-import { parseIssueCommand } from "./utils/command-parser.js";
-import type { IssueRef, WorkerProvider } from "./types.js";
+import { buildGitHubWorkflow } from "./app.ts";
+import { parseIssueCommand } from "./utils/command-parser.ts";
+import type { IssueRef, WorkerProvider } from "./types.ts";
 
 function arg(name: string): string | undefined {
   const i = process.argv.indexOf(`--${name}`);

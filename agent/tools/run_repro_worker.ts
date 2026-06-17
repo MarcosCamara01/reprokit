@@ -1,8 +1,8 @@
 import { defineTool } from "eve/tools";
 import { z } from "zod";
-import { githubProvider, persistWorkerResult } from "../../src/tool-helpers.js";
-import { runPaths, ensureRunDirs } from "../../src/utils/paths.js";
-import { defaultWorkerProvider, getWorker } from "../../src/workers/index.js";
+import { githubProvider, persistWorkerResult } from "../../src/tool-helpers.ts";
+import { runPaths, ensureRunDirs } from "../../src/utils/paths.ts";
+import { defaultWorkerProvider, getWorker } from "../../src/workers/index.ts";
 
 export default defineTool({
   description:

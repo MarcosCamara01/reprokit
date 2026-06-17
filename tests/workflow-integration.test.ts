@@ -1,16 +1,21 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { existsSync, rmSync } from "node:fs";
-import { IssueWorkflow } from "../src/workflow/issue-workflow.js";
-import type { IssueProvider } from "../src/providers/issue-provider.js";
-import type { IssueContext } from "../src/types.js";
-import { loadRunState } from "../src/workflow/run-store.js";
-import { runPaths } from "../src/utils/paths.js";
+import { IssueWorkflow } from "../src/workflow/issue-workflow.ts";
+import type { IssueProvider } from "../src/providers/issue-provider.ts";
+import type { IssueContext } from "../src/types.ts";
+import { loadRunState } from "../src/workflow/run-store.ts";
+import { runPaths } from "../src/utils/paths.ts";
 
 /** In-memory provider so we can exercise the orchestrator without GitHub. */
 class FakeProvider implements IssueProvider {
   readonly id = "github" as const;
   comments: string[] = [];
-  constructor(private issue: IssueContext) {}
+  private issue: IssueContext;
+
+  constructor(issue: IssueContext) {
+    this.issue = issue;
+  }
+
   async getIssue(): Promise<IssueContext> {
     return this.issue;
   }

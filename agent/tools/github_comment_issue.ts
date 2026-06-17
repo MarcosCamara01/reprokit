@@ -1,7 +1,7 @@
 import { defineTool } from "eve/tools";
 import { z } from "zod";
-import { githubProvider } from "../../src/tool-helpers.js";
-import { redactSecrets } from "../../src/utils/redact-secrets.js";
+import { githubProvider } from "../../src/tool-helpers.ts";
+import { redactSecrets } from "../../src/utils/redact-secrets.ts";
 
 export default defineTool({
   description:

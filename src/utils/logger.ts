@@ -1,6 +1,6 @@
 import { appendFileSync, mkdirSync } from "node:fs";
 import { dirname } from "node:path";
-import { redactSecrets } from "./redact-secrets.js";
+import { redactSecrets } from "./redact-secrets.ts";
 
 type Level = "debug" | "info" | "warn" | "error";
 

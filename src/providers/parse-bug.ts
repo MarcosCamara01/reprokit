@@ -1,4 +1,4 @@
-import type { ParsedBug } from "../types.js";
+import type { ParsedBug } from "../types.ts";
 
 /**
  * Heuristic extraction of structured bug fields from free-form issue text.

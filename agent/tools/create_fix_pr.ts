@@ -1,10 +1,10 @@
 import { defineTool } from "eve/tools";
 import { z } from "zod";
-import { githubProvider, readWorkerResult } from "../../src/tool-helpers.js";
-import { runPaths } from "../../src/utils/paths.js";
-import { commitAndPush, openPullRequest, buildPrBody } from "../../src/github/github-pr.js";
-import { logger } from "../../src/utils/logger.js";
-import type { FixWorkerResult } from "../../src/types.js";
+import { githubProvider, readWorkerResult } from "../../src/tool-helpers.ts";
+import { runPaths } from "../../src/utils/paths.ts";
+import { commitAndPush, openPullRequest, buildPrBody } from "../../src/github/github-pr.ts";
+import { logger } from "../../src/utils/logger.ts";
+import type { FixWorkerResult } from "../../src/types.ts";
 
 export default defineTool({
   description:

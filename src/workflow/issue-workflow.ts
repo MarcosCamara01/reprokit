@@ -1,24 +1,24 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
-import type { IssueContext, IssueRef, WorkerProvider } from "../types.js";
-import type { IssueProvider } from "../providers/issue-provider.js";
-import type { GitHubClient } from "../github/github-client.js";
-import { triage } from "../providers/parse-bug.js";
-import { ensureRunDirs, runPaths } from "../utils/paths.js";
-import { createLogger, type Logger } from "../utils/logger.js";
-import { redactAndTruncate } from "../utils/redact-secrets.js";
+import type { IssueContext, IssueRef, WorkerProvider } from "../types.ts";
+import type { IssueProvider } from "../providers/issue-provider.ts";
+import type { GitHubClient } from "../github/github-client.ts";
+import { triage } from "../providers/parse-bug.ts";
+import { ensureRunDirs, runPaths } from "../utils/paths.ts";
+import { createLogger, type Logger } from "../utils/logger.ts";
+import { redactAndTruncate } from "../utils/redact-secrets.ts";
 import {
   loadRunState,
   saveRunState,
   setState,
   type RunStateFile,
-} from "./run-store.js";
-import { prepareWorkdir } from "./prepare-workdir.js";
-import { runProjectChecks } from "./project-checks.js";
-import { defaultWorkerProvider, getWorker } from "../workers/index.js";
-import { renderReproductionReport, summarizeReportForComment } from "../reports/reproduction-report.js";
-import { renderCompareReport } from "../reports/compare-report.js";
-import { buildPrBody, commitAndPush, openPullRequest } from "../github/github-pr.js";
-import type { IssueCommand } from "../utils/command-parser.js";
+} from "./run-store.ts";
+import { prepareWorkdir } from "./prepare-workdir.ts";
+import { runProjectChecks } from "./project-checks.ts";
+import { defaultWorkerProvider, getWorker } from "../workers/index.ts";
+import { renderReproductionReport, summarizeReportForComment } from "../reports/reproduction-report.ts";
+import { renderCompareReport } from "../reports/compare-report.ts";
+import { buildPrBody, commitAndPush, openPullRequest } from "../github/github-pr.ts";
+import type { IssueCommand } from "../utils/command-parser.ts";
 
 const COMMENT_MAX = 60_000;
 

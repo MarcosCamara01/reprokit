@@ -1,5 +1,5 @@
 import { defineChannel, POST } from "eve/channels";
-import { handleWebhook } from "../../src/github/github-webhook.js";
+import { handleWebhook } from "../../src/github/github-webhook.ts";
 
 /**
  * Eve channel wrapper for the same GitHub webhook core used by `npm run webhook`.

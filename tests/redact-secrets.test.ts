@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { redactSecrets, redactAndTruncate } from "../src/utils/redact-secrets.js";
+import { redactSecrets, redactAndTruncate } from "../src/utils/redact-secrets.ts";
 
 // NOTE: these are NOT real credentials. They are assembled by concatenation at
 // runtime so that no token-shaped literal ever exists in the committed source.

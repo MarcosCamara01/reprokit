@@ -1,8 +1,8 @@
-import { loadLocalEnv } from "./utils/load-env.js";
-import { GitHubClient, githubClientFromEnv } from "./github/github-client.js";
-import { GitHubIssueProvider } from "./providers/github-provider.js";
-import { IssueWorkflow, type WorkflowConfig } from "./workflow/issue-workflow.js";
-import type { IssueContext } from "./types.js";
+import { loadLocalEnv } from "./utils/load-env.ts";
+import { GitHubClient, githubClientFromEnv } from "./github/github-client.ts";
+import { GitHubIssueProvider } from "./providers/github-provider.ts";
+import { IssueWorkflow, type WorkflowConfig } from "./workflow/issue-workflow.ts";
+import type { IssueContext } from "./types.ts";
 
 loadLocalEnv();
 

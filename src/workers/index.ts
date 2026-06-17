@@ -1,9 +1,9 @@
-import type { CodingWorker } from "./coding-worker.js";
-import type { WorkerProvider } from "../types.js";
-import { CodexWorker } from "./codex-worker.js";
-import { ClaudeWorker } from "./claude-worker.js";
+import type { CodingWorker } from "./coding-worker.ts";
+import type { WorkerProvider } from "../types.ts";
+import { CodexWorker } from "./codex-worker.ts";
+import { ClaudeWorker } from "./claude-worker.ts";
 
-export type { CodingWorker } from "./coding-worker.js";
+export type { CodingWorker } from "./coding-worker.ts";
 
 /** Resolve the default worker from env (DEFAULT_WORKER). */
 export function defaultWorkerProvider(): WorkerProvider {

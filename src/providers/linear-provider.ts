@@ -1,5 +1,5 @@
-import type { IssueContext } from "../types.js";
-import type { IssueProvider } from "./issue-provider.js";
+import type { IssueContext } from "../types.ts";
+import type { IssueProvider } from "./issue-provider.ts";
 
 /**
  * Linear adapter — STUB.

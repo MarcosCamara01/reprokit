@@ -1,6 +1,6 @@
 import { defineSchedule } from "eve/schedules";
-import { findStaleRuns } from "../../src/workflow/sweep-stale-runs.js";
-import { logger } from "../../src/utils/logger.js";
+import { findStaleRuns } from "../../src/workflow/sweep-stale-runs.ts";
+import { logger } from "../../src/utils/logger.ts";
 
 /**
  * Scheduled job: nudge issues that have been waiting for human approval too long.

@@ -1,13 +1,13 @@
-import type { ProjectChecksResult } from "../types.js";
+import type { ProjectChecksResult } from "../types.ts";
 import {
   detectPackageManager,
   detectScripts,
   runScriptArgs,
   type DetectedScripts,
-} from "../utils/package-manager.js";
-import { safeExec } from "../utils/safe-exec.js";
-import { redactAndTruncate } from "../utils/redact-secrets.js";
-import type { Logger } from "../utils/logger.js";
+} from "../utils/package-manager.ts";
+import { safeExec } from "../utils/safe-exec.ts";
+import { redactAndTruncate } from "../utils/redact-secrets.ts";
+import type { Logger } from "../utils/logger.ts";
 
 /** Order in which checks run after a fix. Stops at the first failure. */
 const DEFAULT_CHECK_ORDER: Array<keyof Omit<DetectedScripts, "all">> = [

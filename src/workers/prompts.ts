@@ -1,4 +1,4 @@
-import type { IssueContext } from "../types.js";
+import type { IssueContext } from "../types.ts";
 
 /** Compact, secret-free serialization of the issue for a worker prompt. */
 export function issueContextBlock(issue: IssueContext): string {

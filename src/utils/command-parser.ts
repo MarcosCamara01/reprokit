@@ -1,4 +1,4 @@
-import type { WorkerProvider } from "../types.js";
+import type { WorkerProvider } from "../types.ts";
 
 /**
  * A command parsed from a GitHub/Linear issue comment.

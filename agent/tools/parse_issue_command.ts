@@ -1,6 +1,6 @@
 import { defineTool } from "eve/tools";
 import { z } from "zod";
-import { parseIssueCommand } from "../../src/utils/command-parser.js";
+import { parseIssueCommand } from "../../src/utils/command-parser.ts";
 
 // Filename → tool name `parse_issue_command`.
 export default defineTool({

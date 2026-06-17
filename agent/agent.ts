@@ -1,5 +1,5 @@
 import { defineAgent } from "eve";
-import { agentModel } from "./lib/model.js";
+import { agentModel } from "./lib/model.ts";
 
 /**
  * Runtime config for the Issue Repro & Fix Agent.

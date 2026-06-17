@@ -1,5 +1,5 @@
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
-import { loadLocalEnv } from "../../src/utils/load-env.js";
+import { loadLocalEnv } from "../../src/utils/load-env.ts";
 
 loadLocalEnv();
 

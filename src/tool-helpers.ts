@@ -4,9 +4,9 @@
  */
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { loadLocalEnv } from "./utils/load-env.js";
-import { GitHubIssueProvider } from "./providers/github-provider.js";
-import { ensureRunDirs, runPaths } from "./utils/paths.js";
+import { loadLocalEnv } from "./utils/load-env.ts";
+import { GitHubIssueProvider } from "./providers/github-provider.ts";
+import { ensureRunDirs, runPaths } from "./utils/paths.ts";
 
 loadLocalEnv();
 

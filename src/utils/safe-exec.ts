@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { redactSecrets } from "./redact-secrets.js";
+import { redactSecrets } from "./redact-secrets.ts";
 
 export interface SafeExecOptions {
   cwd?: string;
@@ -22,8 +22,11 @@ export interface SafeExecResult {
 }
 
 export class UnsafeCommandError extends Error {
-  constructor(public readonly reason: string) {
+  readonly reason: string;
+
+  constructor(reason: string) {
     super(`Refused to run unsafe command: ${reason}`);
+    this.reason = reason;
     this.name = "UnsafeCommandError";
   }
 }

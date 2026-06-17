@@ -1,7 +1,7 @@
 import { defineTool } from "eve/tools";
 import { z } from "zod";
-import { githubProvider } from "../../src/tool-helpers.js";
-import { triage } from "../../src/providers/parse-bug.js";
+import { githubProvider } from "../../src/tool-helpers.ts";
+import { triage } from "../../src/providers/parse-bug.ts";
 
 export default defineTool({
   description:

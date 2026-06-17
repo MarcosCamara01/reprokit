@@ -1,5 +1,5 @@
-import type { IssueContext, ReproWorkerResult } from "../types.js";
-import { redactSecrets } from "../utils/redact-secrets.js";
+import type { IssueContext, ReproWorkerResult } from "../types.ts";
+import { redactSecrets } from "../utils/redact-secrets.ts";
 
 export interface ReproReportInput {
   issue: IssueContext;

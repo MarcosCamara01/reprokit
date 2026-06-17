@@ -1,6 +1,6 @@
-import type { GitHubClient } from "./github-client.js";
-import { safeExec } from "../utils/safe-exec.js";
-import type { Logger } from "../utils/logger.js";
+import type { GitHubClient } from "./github-client.ts";
+import { safeExec } from "../utils/safe-exec.ts";
+import type { Logger } from "../utils/logger.ts";
 
 const GIT_AUTHOR = {
   name: "Issue Repro & Fix Agent",

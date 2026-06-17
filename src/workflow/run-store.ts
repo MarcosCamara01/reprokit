@@ -1,6 +1,6 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
-import { ensureRunDirs, runPaths } from "../utils/paths.js";
-import type { WorkflowState } from "./states.js";
+import { ensureRunDirs, runPaths } from "../utils/paths.ts";
+import type { WorkflowState } from "./states.ts";
 
 export interface RunStateFile {
   issue: {

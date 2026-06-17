@@ -1,8 +1,8 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
-import { parseIssueCommand, type IssueCommand } from "../utils/command-parser.js";
-import { buildGitHubWorkflow } from "../app.js";
-import { createLogger } from "../utils/logger.js";
-import type { IssueRef } from "../types.js";
+import { parseIssueCommand, type IssueCommand } from "../utils/command-parser.ts";
+import { buildGitHubWorkflow } from "../app.ts";
+import { createLogger } from "../utils/logger.ts";
+import type { IssueRef } from "../types.ts";
 
 const log = createLogger("webhook");
 

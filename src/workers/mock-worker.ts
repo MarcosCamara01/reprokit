@@ -1,13 +1,13 @@
 import type {
   CodingWorker,
-} from "./coding-worker.js";
+} from "./coding-worker.ts";
 import type {
   FixWorkerInput,
   FixWorkerResult,
   ReproWorkerInput,
   ReproWorkerResult,
   WorkerProvider,
-} from "../types.js";
+} from "../types.ts";
 
 /**
  * Deterministic mock worker used when the real CLI is not installed (or when
@@ -15,7 +15,11 @@ import type {
  * end for demos and tests. Every result is clearly marked `mocked: true`.
  */
 export class MockWorker implements CodingWorker {
-  constructor(public readonly provider: WorkerProvider) {}
+  readonly provider: WorkerProvider;
+
+  constructor(provider: WorkerProvider) {
+    this.provider = provider;
+  }
 
   async isAvailable(): Promise<boolean> {
     return true;

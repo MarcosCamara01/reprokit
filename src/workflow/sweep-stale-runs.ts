@@ -1,6 +1,6 @@
 import { existsSync, readdirSync } from "node:fs";
-import { RUNS_ROOT } from "../utils/paths.js";
-import { loadRunState } from "./run-store.js";
+import { RUNS_ROOT } from "../utils/paths.ts";
+import { loadRunState } from "./run-store.ts";
 
 export interface StaleRun {
   issueKey: string;

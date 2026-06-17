@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   detectPackageManagerFromFiles,
   detectScriptsFromPackageJson,
-} from "../src/utils/package-manager.js";
+} from "../src/utils/package-manager.ts";
 
 describe("detectPackageManagerFromFiles", () => {
   it("detects pnpm", () => {

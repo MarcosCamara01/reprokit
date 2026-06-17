@@ -1,4 +1,4 @@
-import type { IssueContext } from "../types.js";
+import type { IssueContext } from "../types.ts";
 
 /**
  * Provider-agnostic contract for an issue tracker (GitHub today, Linear later).

@@ -1,11 +1,11 @@
 import { defineTool } from "eve/tools";
 import { z } from "zod";
 import { existsSync } from "node:fs";
-import { githubProvider, persistWorkerResult } from "../../src/tool-helpers.js";
-import { runPaths, ensureRunDirs } from "../../src/utils/paths.js";
-import { prepareWorkdir } from "../../src/workflow/prepare-workdir.js";
-import { defaultWorkerProvider, getWorker } from "../../src/workers/index.js";
-import { logger } from "../../src/utils/logger.js";
+import { githubProvider, persistWorkerResult } from "../../src/tool-helpers.ts";
+import { runPaths, ensureRunDirs } from "../../src/utils/paths.ts";
+import { prepareWorkdir } from "../../src/workflow/prepare-workdir.ts";
+import { defaultWorkerProvider, getWorker } from "../../src/workers/index.ts";
+import { logger } from "../../src/utils/logger.ts";
 
 export default defineTool({
   description:

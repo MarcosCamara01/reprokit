@@ -1,9 +1,9 @@
 import { defineTool } from "eve/tools";
 import { z } from "zod";
-import { githubProvider } from "../../src/tool-helpers.js";
-import { runPaths } from "../../src/utils/paths.js";
-import { runProjectChecks } from "../../src/workflow/project-checks.js";
-import { logger } from "../../src/utils/logger.js";
+import { githubProvider } from "../../src/tool-helpers.ts";
+import { runPaths } from "../../src/utils/paths.ts";
+import { runProjectChecks } from "../../src/workflow/project-checks.ts";
+import { logger } from "../../src/utils/logger.ts";
 
 export default defineTool({
   description:
