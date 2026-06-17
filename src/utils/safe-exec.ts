@@ -68,6 +68,10 @@ function sanitizedEnv(extra?: Record<string, string | undefined>): NodeJS.Proces
     "GITHUB_WEBHOOK_SECRET",
     "OPENAI_API_KEY",
     "ANTHROPIC_API_KEY",
+    "AI_GATEWAY_API_KEY",
+    "GOOGLE_GENERATIVE_AI_API_KEY",
+    "GEMINI_API_KEY",
+    "GOOGLE_API_KEY",
     "DATABASE_URL",
     "AWS_SECRET_ACCESS_KEY",
   ];

@@ -27,6 +27,7 @@ export interface WorkflowConfig {
   maxLogChars: number;
   defaultWorker: WorkerProvider;
   install: boolean;
+  browserChecks: boolean;
 }
 
 export interface WorkflowDeps {
@@ -45,6 +46,9 @@ function configFromEnv(overrides?: Partial<WorkflowConfig>): WorkflowConfig {
     maxLogChars: Number(process.env.MAX_LOG_CHARS) || 12_000,
     defaultWorker: defaultWorkerProvider(),
     install: process.env.WORKER_INSTALL === "1",
+    browserChecks:
+      process.env.RUN_BROWSER_CHECKS === "1" ||
+      process.env.RUN_PLAYWRIGHT_CHECKS === "1",
     ...overrides,
   };
 }
@@ -220,6 +224,7 @@ export class IssueWorkflow {
     const checks = await runProjectChecks({
       repoDir: paths.repo,
       maxLogChars: this.config.maxLogChars,
+      includeBrowserChecks: this.config.browserChecks,
       logger: runLog,
     });
 

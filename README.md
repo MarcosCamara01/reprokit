@@ -4,8 +4,9 @@
 > _Convierte issues vagos en bugs reproducibles, informes claros y PRs seguros con aprobación humana._
 
 Built on [**Vercel Eve**](https://vercel.com/docs/eve) — a filesystem-first
-framework for durable backend AI agents. Eve acts as the **orchestrator**;
-**Codex** and **Claude Code** run as **external workers** in isolated checkouts.
+framework for durable backend AI agents. **Gemini** drives the Eve
+orchestrator, while **Codex** and **Claude Code** run as external workers in
+isolated checkouts.
 
 ---
 
@@ -32,7 +33,9 @@ GitHub issue → /repro → worker → reproduction report → human approval �
 - ✅ Reads a GitHub issue (title, body, labels, comments, repo).
 - ✅ Triages it and asks for more info when it's too thin.
 - ✅ Clones the repo into an isolated `.runs/issue-<n>/repo` checkout.
-- ✅ Runs a reproduction worker (Codex/Claude **or a mock** if the CLI is absent).
+- ✅ Runs a reproduction worker (Codex/Claude **or a mock** if the worker is absent).
+- ✅ Detects browser/UI bugs and existing `e2e`/`playwright` scripts so workers
+  can turn vague reports into browser-backed evidence.
 - ✅ Generates `report.md` and posts it on the issue.
 - ✅ **Waits for human approval** before any code change.
 - ✅ On `/fix`: runs a fix worker, runs project checks, and — only if they pass —
@@ -40,14 +43,21 @@ GitHub issue → /repro → worker → reproduction report → human approval �
 - ✅ `/compare`: runs both workers in **separate** checkouts and posts a table.
 - ✅ Redacts secrets and refuses destructive commands.
 
+### Playwright evidence
+
+For UI/browser bugs, the repo is designed to use Playwright as the evidence
+loop: reproduce the issue in a real browser, capture commands/logs/screenshots
+or failing tests in the `/repro` report, then use the same Playwright/e2e script
+as an optional post-fix gate. Normal `/fix` validation runs typecheck, lint,
+unit tests, and build; set `RUN_BROWSER_CHECKS=1` to include detected `e2e` or
+`playwright` scripts when you want browser confirmation before a PR opens.
+
 ## 3. What it does NOT do yet
 
 - ❌ Linear is a **stub** (clean adapter, not implemented) — see [src/providers/linear-provider.ts](src/providers/linear-provider.ts).
 - ❌ No GitHub App (uses a personal access token; App is designed-for, not required).
 - ❌ No auto-merge, no deploy, no production DB/secrets.
 - ❌ No dashboard/UI; state is files under `.runs/`.
-- ⚠️ Some Eve features (channel/connection/schedule wiring) are **TODO-flagged**
-  because their exact API isn't in the public docs yet — see §12.
 
 ---
 
@@ -58,11 +68,13 @@ GitHub issue → /repro → worker → reproduction report → human approval �
 npm install
 
 # 2. After install, read Eve's real local docs to confirm beta APIs:
-ls node_modules/eve/dist/docs/public/
+ls node_modules/eve/docs/
 
 # 3. Configure environment
 cp .env.example .env   # then edit .env
 ```
+
+Local CLI/webhook runs load `.env` automatically when the file exists.
 
 > **Note:** `npm run typecheck` only fully passes after `npm install` (the
 > `agent/` files import `eve`). `npm test` works immediately — tests only depend
@@ -70,13 +82,15 @@ cp .env.example .env   # then edit .env
 
 ## 5. Configure Eve
 
-`agent/agent.ts` selects the model via [AI Gateway](https://vercel.com/docs/ai-gateway):
+`agent/agent.ts` selects the model through `@ai-sdk/google`, using a direct
+Google AI Studio / Gemini API key. This repo defaults the Eve runtime model to
+Gemini:
 
 ```ts
-export default defineAgent({ model: "anthropic/claude-sonnet-4.6" });
+export default defineAgent({ model: agentModel });
 ```
 
-Run the Eve dev server (intake via the GitHub channel — see §12):
+Run the Eve dev server (intake via the GitHub channel — see §13):
 
 ```bash
 npm run dev      # → eve dev
@@ -124,14 +138,28 @@ If `claude` isn't on `PATH`, the worker falls back to a **mock**.
 > See `TODO(codex)` / `TODO(claude)` in the worker files to confirm exact flags
 > for your installed CLI versions.
 
-## 9. Run the agent
+## 9. Configure Gemini for the agent
+
+```env
+AGENT_MODEL=gemini-3.5-flash
+GEMINI_API_KEY=your_google_ai_studio_key
+DEFAULT_WORKER=claude
+# Optional: include e2e/playwright scripts after normal checks.
+RUN_BROWSER_CHECKS=1
+```
+
+Gemini is used only for the Eve agent/orchestrator. It decides what tools to
+call and manages the workflow. The code-changing workers remain Codex/Claude,
+so `/fix gemini` is intentionally not supported.
+
+## 10. Run the agent
 
 - **Eve runtime:** `npm run dev`
 - **Standalone webhook:** `npm run webhook`
 - **Local CLI (no webhook needed):**
 
 ```bash
-# Force mocks so you can try the flow with no Codex/Claude installed:
+# Force mocks so you can try the flow with no worker configured:
 WORKER_MOCK=1 npm run cli -- repro --issue 123 --owner acme --repo widgets
 npm run cli -- fix     --issue 123 --worker claude
 npm run cli -- compare --issue 123
@@ -140,7 +168,7 @@ npm run cli -- stop    --issue 123
 
 (`--owner/--repo` default to `GITHUB_OWNER`/`GITHUB_REPO`.)
 
-## 10. Try `/repro`
+## 11. Try `/repro`
 
 1. Create an issue (example below), then comment `/repro`.
 2. The agent prepares `.runs/issue-<n>/`, runs the worker, writes `report.md`,
@@ -165,7 +193,7 @@ Some clients remain hidden until refreshing the page.
 ```
 </details>
 
-## 11. Try `/fix` and `/compare`
+## 12. Try `/fix` and `/compare`
 
 - Comment `/fix` (or `/fix codex` / `/fix claude`). The agent creates
   `agent/fix-issue-<n>`, runs the fix worker, runs checks, and opens a PR **only
@@ -174,7 +202,7 @@ Some clients remain hidden until refreshing the page.
 
 ---
 
-## 12. Eve API confidence (important)
+## 13. Eve API confidence (important)
 
 Per the project's "don't invent Eve APIs" rule, here's exactly what's grounded:
 
@@ -184,30 +212,31 @@ Per the project's "don't invent Eve APIs" rule, here's exactly what's grounded:
 | `defineTool` (`eve/tools`, zod `inputSchema`, filename = tool name) | ✅ confirmed | docs + concepts |
 | Filesystem layout (`agent/tools`, `skills`, `channels`, `connections`, `subagents`, `schedules`, `sandbox`) | ✅ confirmed | concepts |
 | Sessions/durability/sandbox model | ✅ confirmed | concepts |
-| GitHub **channel** signature | ⚠️ partial | GitHub is a listed built-in channel; exact import/options not public. Mirrors the official Slack template; **TODO(eve)** in [agent/channels/github.ts](agent/channels/github.ts) |
-| **connections** API | ⚠️ low | documented concept; concrete `defineConnection`/Connect shape not public. Real auth lives in `src/github`; **TODO(eve)** in [agent/connections/github.ts](agent/connections/github.ts) |
-| `defineSchedule` | ⚠️ partial | named in the announcement; exact shape not public. **TODO(eve)** in [agent/schedules/sweep-stale-runs.ts](agent/schedules/sweep-stale-runs.ts) |
-| **subagents** config | ⚠️ partial | dir convention documented; per-subagent config not public. See [agent/subagents/README.md](agent/subagents/README.md) |
+| GitHub **channel** | ✅ confirmed | custom `defineChannel` wrapper at [agent/channels/github.ts](agent/channels/github.ts), reusing the PAT-based webhook core |
+| **connections** API | ✅ confirmed | Eve supports MCP/OpenAPI connections; this MVP does not need one because GitHub auth lives in `src/github` via `GITHUB_TOKEN` |
+| `defineSchedule` | ✅ confirmed | [agent/schedules/sweep-stale-runs.ts](agent/schedules/sweep-stale-runs.ts) uses `defineSchedule` |
+| **subagents** config | ✅ confirmed | each subagent has `agent.ts` plus role instructions |
 | **approvals** API | ⚠️ partial | approval is enforced in our workflow (a human `/fix` comment is the gate); Eve's native approval primitive isn't wired |
 
 **Design choice:** all product logic lives in a framework-agnostic `src/` core.
 The Eve `agent/tools/*` files are thin `defineTool` wrappers over `src/`, so the
 MVP runs today via the webhook/CLI **and** plugs into Eve using only confirmed
-APIs. After `npm install`, confirm the ⚠️ items against
-`node_modules/eve/dist/docs/public/` and uncomment the wiring in those files.
+APIs. `npm run typecheck`, `npx eve info`, and `npm run build` should pass
+after dependencies are installed.
 
-> If `eve dev` complains about a placeholder channel/connection/schedule file,
-> wire it per the local docs or temporarily remove it — the **webhook intake
-> (`npm run webhook`) works regardless** and drives the identical core.
+> The **webhook intake** (`npm run webhook`) and the Eve channel route both
+> drive the identical core workflow.
 
-## 13. Limitations
+## 14. Limitations
 
 - Reproduction quality depends on the worker CLI; mocks are for plumbing only.
+- Gemini is not a worker in this repo; it only drives the Eve agent runtime.
 - Cloning/checks need network and may be slow for large repos (shallow clone used).
-- `e2e`/`playwright` checks are **skipped by default** (slow, need browsers).
+- `e2e`/`playwright` checks are opt-in with `RUN_BROWSER_CHECKS=1`
+  because they can be slow and need installed browsers.
 - Single-repo focus per issue; monorepo targeting is naive.
 
-## 14. Security
+## 15. Security
 
 - ✅ Human approval required before any code change / branch / PR.
 - ✅ Never auto-merges, never deploys.
@@ -216,18 +245,17 @@ APIs. After `npm install`, confirm the ⚠️ items against
 - ✅ Redacts secrets (`*_TOKEN`, `*_KEY`, `DATABASE_URL`, `Bearer …`, PEM keys,
   URL basic-auth) from all logs/comments — see [src/utils/redact-secrets.ts](src/utils/redact-secrets.ts).
 - ✅ Worker timeouts and log-size caps on everything posted publicly.
-- ✅ Never reads/edits `.env*` or key files; never uses production secrets/DB.
+- ✅ Loads `.env` only for process configuration; strips secrets before worker subprocesses.
 - ✅ Workers run in **separate** working directories (Codex ≠ Claude).
 
-## 15. Roadmap
+## 16. Roadmap
 
-1. Confirm & wire the Eve GitHub channel, connections, schedules, subagents,
-   and native approvals against the installed docs.
+1. Replace the PAT path with GitHub App auth when moving beyond the MVP.
 2. Real Codex/Claude CLI flag tuning + structured (`--output-format json`) parsing.
-3. GitHub App auth (installation tokens) replacing the PAT.
+3. Wire Eve native approvals if/when you want approval prompts beyond `/fix`.
 4. Implement the Linear adapter (`LinearIssueProvider`) + Linear intake.
 5. Move run state from `.runs/` files to a database; add evals/tracing dashboards.
-6. Screenshot capture for browser-repro bugs; richer environment provisioning.
+6. Richer Playwright artifact capture for browser repros; better environment provisioning.
 
 ---
 
@@ -239,10 +267,9 @@ agent/                      # Eve agent (filesystem-first)
   instructions.md           # orchestrator system prompt + safety rules
   tools/*.ts                # 9 defineTool wrappers over src/ core
   skills/*.md               # triage, repro-report, fix-policy, stack debugging
-  subagents/*/              # triage/repro/fix/test/report roles (instructions)
-  channels/github.ts        # GitHub intake (TODO(eve): confirm signature)
-  connections/github.ts     # GitHub auth config (TODO(eve))
-  schedules/sweep-stale-runs.ts  # stale-approval sweep (TODO(eve))
+  subagents/*/              # triage/repro/fix/test/report roles
+  channels/github.ts        # GitHub webhook intake for Eve
+  schedules/sweep-stale-runs.ts  # stale-approval sweep
 
 src/                        # framework-agnostic core (fully tested)
   providers/                # IssueProvider + GitHub (real) + Linear (stub) + bug parser

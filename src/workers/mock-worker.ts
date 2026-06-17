@@ -21,6 +21,14 @@ export class MockWorker implements CodingWorker {
     return true;
   }
 
+  private setupHint(): string {
+    return `install the ${this.provider} CLI to get a real analysis`;
+  }
+
+  private fixSetupHint(): string {
+    return `Install the ${this.provider} CLI (see README) and re-run /fix to attempt a real fix`;
+  }
+
   async runRepro(input: ReproWorkerInput): Promise<ReproWorkerResult> {
     const { issue } = input;
     const suspected = issue.parsedBug.suspectedArea ?? "unknown";
@@ -30,7 +38,7 @@ export class MockWorker implements CodingWorker {
       confidence: 55,
       summary:
         `[MOCK ${this.provider}] Simulated reproduction of "${issue.title}". ` +
-        `No real CLI was run — install the ${this.provider} CLI to get a real analysis.`,
+        `No real worker was run; ${this.setupHint()}.`,
       reproductionSteps:
         issue.parsedBug.reproductionSteps.length > 0
           ? issue.parsedBug.reproductionSteps
@@ -42,7 +50,7 @@ export class MockWorker implements CodingWorker {
       createdFiles: [],
       modifiedFiles: [],
       recommendation:
-        "This is a MOCK reproduction. Install Codex or Claude Code CLI and re-run `/repro` for a real result.",
+        `This is a MOCK reproduction. ${this.setupHint()} and re-run \`/repro\` for a real result.`,
       mocked: true,
     };
   }
@@ -53,14 +61,14 @@ export class MockWorker implements CodingWorker {
       fixed: false,
       confidence: 0,
       summary:
-        `[MOCK ${this.provider}] No fix was attempted because the ${this.provider} CLI is not installed.`,
+        `[MOCK ${this.provider}] No fix was attempted because the worker is not configured.`,
       filesChanged: [],
       testsAddedOrUpdated: [],
       commandsRun: [],
       relevantLogs: [],
       risks: ["Mock worker cannot produce a real code change."],
       recommendation:
-        `Install the ${this.provider} CLI (see README) and re-run /fix to attempt a real fix.`,
+        `${this.fixSetupHint()}.`,
       mocked: true,
     };
   }

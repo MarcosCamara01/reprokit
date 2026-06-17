@@ -8,7 +8,7 @@
  *   npm run cli -- stop   --issue 123
  *
  * Owner/repo default to GITHUB_OWNER / GITHUB_REPO from the environment.
- * Set WORKER_MOCK=1 to exercise the flow without the Codex/Claude CLIs.
+ * Set WORKER_MOCK=1 to exercise the flow without configured workers.
  */
 import { buildGitHubWorkflow } from "./app.js";
 import { parseIssueCommand } from "./utils/command-parser.js";

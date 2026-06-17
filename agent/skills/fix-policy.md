@@ -15,7 +15,8 @@ Applies whenever you attempt a fix (after human approval).
 ## Gates before opening a PR
 
 1. The fix worker reports `fixed: true`.
-2. `run_project_checks` passes (typecheck → lint → test → build).
+2. `run_project_checks` passes (typecheck → lint → test → build, plus
+   e2e/playwright when `RUN_BROWSER_CHECKS=1`).
 
 If either gate fails: post the failure with redacted, truncated logs and do
 **not** open a PR.

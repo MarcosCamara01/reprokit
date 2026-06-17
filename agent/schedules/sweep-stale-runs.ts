@@ -1,19 +1,10 @@
-/**
- * Scheduled job: nudge issues that have been waiting for human approval too long.
- *
- * ⚠️ API CONFIDENCE: PARTIAL.
- * `defineSchedule` is named in the Eve announcement as the cron API, but the
- * exact option/handler shape isn't published verbatim. The handler body below
- * uses only our verified core (`findStaleRuns`), so once the wrapper signature
- * is confirmed this becomes a one-line adjustment.
- *
- * TODO(eve): after `npm install eve@latest`, confirm `defineSchedule` in
- *   node_modules/eve/dist/docs/public/ (cron expression field name, handler
- *   signature, how to post back to a channel) and uncomment the export.
- */
-
+import { defineSchedule } from "eve/schedules";
 import { findStaleRuns } from "../../src/workflow/sweep-stale-runs.js";
 import { logger } from "../../src/utils/logger.js";
+
+/**
+ * Scheduled job: nudge issues that have been waiting for human approval too long.
+ */
 
 /** Verified core: list runs parked in WAITING_FOR_APPROVAL / FIX_FAILED. */
 export async function sweep(): Promise<void> {
@@ -25,14 +16,9 @@ export async function sweep(): Promise<void> {
   // / provider, e.g. "This issue has a reproduction report awaiting /fix or /stop."
 }
 
-// Intended Eve wiring (uncomment once the signature is confirmed):
-//
-// import { defineSchedule } from "eve";
-// export default defineSchedule({
-//   cron: "0 9 * * *", // daily at 09:00 UTC
-//   async run() {
-//     await sweep();
-//   },
-// });
-
-export {};
+export default defineSchedule({
+  cron: "0 9 * * *",
+  async run() {
+    await sweep();
+  },
+});

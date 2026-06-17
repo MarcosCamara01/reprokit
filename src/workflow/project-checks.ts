@@ -10,12 +10,16 @@ import { redactAndTruncate } from "../utils/redact-secrets.js";
 import type { Logger } from "../utils/logger.js";
 
 /** Order in which checks run after a fix. Stops at the first failure. */
-const CHECK_ORDER: Array<keyof Omit<DetectedScripts, "all">> = [
+const DEFAULT_CHECK_ORDER: Array<keyof Omit<DetectedScripts, "all">> = [
   "typecheck",
   "lint",
   "test",
   "build",
-  // e2e/playwright are intentionally NOT run by default (slow, flaky, need browsers).
+];
+
+const BROWSER_CHECK_ORDER: Array<keyof Omit<DetectedScripts, "all">> = [
+  "e2e",
+  "playwright",
 ];
 
 export interface RunChecksOptions {
@@ -23,7 +27,9 @@ export interface RunChecksOptions {
   timeoutMsPerCheck?: number;
   maxLogChars?: number;
   logger?: Logger;
-  /** Override which checks to run (defaults to CHECK_ORDER ∩ available scripts). */
+  /** Include browser/e2e checks after the normal project checks. */
+  includeBrowserChecks?: boolean;
+  /** Override which checks to run (defaults to detected standard scripts). */
   only?: Array<keyof Omit<DetectedScripts, "all">>;
 }
 
@@ -54,7 +60,10 @@ export async function runProjectChecks(
     };
   }
 
-  const checks = (opts.only ?? CHECK_ORDER).filter((c) => scripts[c]);
+  const defaultOrder = opts.includeBrowserChecks
+    ? [...DEFAULT_CHECK_ORDER, ...BROWSER_CHECK_ORDER]
+    : DEFAULT_CHECK_ORDER;
+  const checks = (opts.only ?? defaultOrder).filter((c) => scripts[c]);
   if (checks.length === 0) {
     return {
       success: true,

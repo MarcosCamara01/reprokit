@@ -5,7 +5,7 @@
   "description": "Issue Repro & Fix Agent — turns vague bug reports into reproducible evidence and safe fix PRs. Built on Vercel Eve.",
   "type": "module",
   "engines": {
-    "node": ">=18.18.0"
+    "node": ">=24.0.0"
   },
   "scripts": {
     "dev": "eve dev",
@@ -17,13 +17,15 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "eve": "latest",
-    "zod": "^3.23.8"
+    "@ai-sdk/google": "^3.0.83",
+    "eve": "0.11.3",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
     "tsx": "^4.19.0",
     "typescript": "^5.6.0",
-    "vitest": "^2.1.0"
+    "vite": "^8.0.16",
+    "vitest": "^4.1.9"
   }
 }

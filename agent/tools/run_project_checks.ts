@@ -10,7 +10,7 @@ export default defineTool({
     "Run project validation checks (typecheck → lint → test → build, whichever " +
     "exist) against the fixed checkout. Stops at the first failure. Returns a " +
     "structured pass/fail result with redacted, truncated logs. e2e/playwright " +
-    "are intentionally skipped by default.",
+    "are skipped by default unless RUN_BROWSER_CHECKS=1.",
   inputSchema: z.object({
     number: z.number().int(),
     owner: z.string().optional(),
@@ -23,6 +23,9 @@ export default defineTool({
     return runProjectChecks({
       repoDir: paths.repo,
       maxLogChars: Number(process.env.MAX_LOG_CHARS) || 12_000,
+      includeBrowserChecks:
+        process.env.RUN_BROWSER_CHECKS === "1" ||
+        process.env.RUN_PLAYWRIGHT_CHECKS === "1",
       logger,
     });
   },

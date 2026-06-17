@@ -19,4 +19,7 @@ evidence-led and reproducible by a human.
 - Redact secrets everywhere (use the redaction utility).
 - Truncate long logs; keep the full report on disk.
 - If not reproduced, explain *why* and what would help.
+- For UI/browser bugs, call out Playwright evidence explicitly when available:
+  failing spec, trace/report path, screenshot path, browser console logs, or
+  the command needed to replay the bug.
 - Never include a fix in a reproduction report.

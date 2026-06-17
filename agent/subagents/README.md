@@ -11,12 +11,7 @@ prompt and a minimal toolset:
 - `test-agent/` — run and interpret project checks.
 - `report-agent/` — render and post reports/comments.
 
-⚠️ API CONFIDENCE: PARTIAL. The directory convention is documented, but the exact
-per-subagent config (whether each needs its own `agent.ts`, how `tools/` are
-scoped, how the parent invokes it) is not published verbatim.
-
-TODO(eve): after `npm install eve@latest`, confirm the subagent contract in
-`node_modules/eve/dist/docs/public/` and, if required, add an `agent.ts` and a
-scoped `tools/` directory to each subagent. Today the same work is reliably done
-by the top-level agent calling the `agent/tools/*` tools directly, so these
-subagents are an optional refinement, not a dependency of the MVP flow.
+Each subagent has its own `agent.ts` because Eve requires declared subagents to
+export `defineAgent({ description, model })`. Today the same work is also
+available through the top-level `agent/tools/*` tools, so these subagents are a
+specialist delegation surface rather than the only path through the MVP flow.

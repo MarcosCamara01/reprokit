@@ -1,7 +1,10 @@
+import { loadLocalEnv } from "./utils/load-env.js";
 import { GitHubClient, githubClientFromEnv } from "./github/github-client.js";
 import { GitHubIssueProvider } from "./providers/github-provider.js";
 import { IssueWorkflow, type WorkflowConfig } from "./workflow/issue-workflow.js";
 import type { IssueContext } from "./types.js";
+
+loadLocalEnv();
 
 /**
  * Build a fully-wired GitHub workflow (provider + git access + PR client).

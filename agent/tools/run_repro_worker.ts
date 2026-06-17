@@ -8,7 +8,7 @@ export default defineTool({
   description:
     "Run a reproduction worker (Codex or Claude Code) in the isolated checkout. " +
     "The worker tries to REPRODUCE the bug only — it must not fix, commit, or push. " +
-    "Falls back to a clearly-labelled MOCK if the CLI is not installed. " +
+    "Falls back to a clearly-labelled MOCK if the worker is not configured. " +
     "The structured result is persisted for generate_report.",
   inputSchema: z.object({
     number: z.number().int(),

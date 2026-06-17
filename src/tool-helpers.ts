@@ -4,8 +4,11 @@
  */
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { loadLocalEnv } from "./utils/load-env.js";
 import { GitHubIssueProvider } from "./providers/github-provider.js";
 import { ensureRunDirs, runPaths } from "./utils/paths.js";
+
+loadLocalEnv();
 
 export function githubProvider(owner?: string, repo?: string): GitHubIssueProvider {
   return GitHubIssueProvider.fromEnv(owner, repo);
