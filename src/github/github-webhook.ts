@@ -8,6 +8,7 @@ const log = createLogger("webhook");
 const GENERATED_COMMENT_PREFIXES = [
   "# Reproduction Report",
   "# Worker Comparison",
+  "I need more information before trying to reproduce this bug.",
 ];
 
 /**

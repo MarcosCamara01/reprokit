@@ -39,4 +39,15 @@ describe("parseWebhookEvent", () => {
       ),
     ).toBeNull();
   });
+
+  it("ignores generated missing-info prompts even when they mention commands", () => {
+    expect(
+      parseWebhookEvent(
+        "issue_comment",
+        issueCommentPayload(
+          "I need more information before trying to reproduce this bug.\n\nThen comment `/repro` again.",
+        ),
+      ),
+    ).toBeNull();
+  });
 });
