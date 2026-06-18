@@ -5,8 +5,8 @@ export type PackageManager = "pnpm" | "npm" | "yarn" | "bun";
 
 /** Lockfile -> package manager, in priority order. */
 const LOCKFILES: Array<{ file: string; pm: PackageManager }> = [
-  { file: "package-lock.json", pm: "npm" },
   { file: "pnpm-lock.yaml", pm: "pnpm" },
+  { file: "package-lock.json", pm: "npm" },
   { file: "bun.lockb", pm: "bun" },
   { file: "bun.lock", pm: "bun" },
   { file: "yarn.lock", pm: "yarn" },
