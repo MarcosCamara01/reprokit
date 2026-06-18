@@ -61,6 +61,12 @@ export async function prepareWorkdir(
     logger?.info("Reusing existing checkout.", { repoDir });
   }
 
+  const safeRemoteUrl = publicCloneUrlForIssue(issue, cloneUrl);
+  await safeExec("git", ["remote", "set-url", "origin", safeRemoteUrl], {
+    cwd: repoDir,
+    timeoutMs: 30_000,
+  }).catch((e) => logger?.warn("Failed to sanitize origin remote.", { error: String(e) }));
+
   if (defaultBranch) {
     // Best-effort checkout of the default branch; ignore failures.
     await safeExec("git", ["checkout", defaultBranch], { cwd: repoDir, timeoutMs: 60_000 }).catch(
@@ -83,4 +89,23 @@ export async function prepareWorkdir(
   }
 
   return { repoDir, cloned, defaultBranch, packageManager, scripts, installed };
+}
+
+export function publicCloneUrlForIssue(issue: IssueContext, fallback: string): string {
+  if (issue.repository?.cloneUrl) return stripUrlCredentials(issue.repository.cloneUrl);
+  if (issue.repository?.owner && issue.repository.name) {
+    return `https://github.com/${issue.repository.owner}/${issue.repository.name}.git`;
+  }
+  return stripUrlCredentials(fallback);
+}
+
+function stripUrlCredentials(url: string): string {
+  try {
+    const parsed = new URL(url);
+    parsed.username = "";
+    parsed.password = "";
+    return parsed.toString();
+  } catch {
+    return url.replace(/^https:\/\/[^/@:]+:[^/@]+@/i, "https://");
+  }
 }
