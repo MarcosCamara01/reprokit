@@ -1,5 +1,12 @@
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
-import type { IssueContext, IssueRef, WorkerProvider } from "../types.ts";
+import { readFileSync, writeFileSync } from "node:fs";
+import type {
+  FixWorkerResult,
+  IssueContext,
+  IssueRef,
+  ProjectChecksResult,
+  ReproWorkerResult,
+  WorkerProvider,
+} from "../types.ts";
 import type { IssueProvider } from "../providers/issue-provider.ts";
 import type { GitHubClient } from "../github/github-client.ts";
 import { triage } from "../providers/parse-bug.ts";
@@ -167,31 +174,24 @@ export class IssueWorkflow {
   async runFix(ref: IssueRef, providerOverride?: WorkerProvider): Promise<void> {
     const issue = await this.provider.getIssue(ref.id);
     const key = issue.number ?? issue.id;
-    const existing = loadRunState(key);
-
-    // Human-in-the-loop gate: a reproduction report must exist first.
-    if (
-      !existing ||
-      !["REPORT_POSTED", "WAITING_FOR_APPROVAL", "FIX_FAILED"].includes(existing.state)
-    ) {
-      await this.provider.postComment(
-        ref.id,
-        "I can't start a fix yet — there's no reproduction report for this issue. " +
-          "Please run `/repro` first, review the report, then comment `/fix`.",
-      );
-      return;
-    }
-
-    let state = existing;
+    let state = this.initState(issue);
     const workerProvider =
       providerOverride ?? (state.worker as WorkerProvider) ?? this.config.defaultWorker;
     const worker = getWorker(workerProvider);
     const paths = runPaths(key);
+    ensureRunDirs(paths);
     const runLog = this.log.child(`issue-${key}:fix`);
     const branchName = `agent/fix-issue-${issue.number ?? issue.id}`;
 
-    // Ensure a checkout exists for the worker to edit.
-    if (!existsSync(paths.repo) && this.resolveGitUrl) {
+    const t = triage(issue.parsedBug);
+    if (!t.hasEnoughInfo) {
+      await this.provider.postComment(ref.id, missingInfoComment(t.missing));
+      this.transition(key, state, "NEEDS_MORE_INFO", "insufficient info for fix pipeline");
+      return;
+    }
+    state = this.transition(key, state, "TRIAGED", "starting /fix pipeline");
+
+    if (this.resolveGitUrl) {
       await prepareWorkdir({
         issue,
         repoDir: paths.repo,
@@ -199,6 +199,53 @@ export class IssueWorkflow {
         install: this.config.install,
         logger: runLog,
       }).catch((e) => runLog.warn("clone failed", { error: String(e) }));
+    } else {
+      runLog.warn("No git access configured - skipping clone (workers may mock).");
+    }
+    state = this.transition(key, state, "ENV_PREPARED", "pre-fix reproduction checkout ready");
+
+    state = this.transition(key, state, "REPRO_RUNNING", `pre-fix worker=${worker.provider}`);
+    const preFixRepro = await worker.runRepro({
+      provider: worker.provider,
+      issue,
+      workdir: paths.repo,
+      timeoutMs: this.config.workerTimeoutMs,
+    });
+
+    state = this.transition(
+      key,
+      state,
+      preFixRepro.reproduced ? "REPRODUCED" : "NOT_REPRODUCED",
+      `pre-fix confidence=${preFixRepro.confidence}`,
+    );
+
+    const preFixReport = renderReproductionReport({
+      issue,
+      result: preFixRepro,
+      environment: issue.parsedBug.environment,
+    });
+    writeFileSync(paths.report, preFixReport);
+    state = { ...state, reportPath: paths.report, worker: worker.provider };
+    saveRunState(key, state);
+    await this.postReportComment(ref.id, preFixReport);
+    state = this.transition(key, state, "REPORT_POSTED", "pre-fix reproduction report posted");
+
+    if (!preFixRepro.reproduced) {
+      this.transition(key, state, "FIX_FAILED", "pre-fix reproduction did not reproduce");
+      await this.provider.postComment(
+        ref.id,
+        this.blockedComment({
+          title: "Fix stopped before code changes",
+          reason:
+            "The agent could not reproduce the bug, so applying a fix would be guesswork.",
+          nextSteps: [
+            "Add clearer steps, expected behavior, actual behavior, logs, or a failing test.",
+            "Comment with /fix again after the issue has enough evidence.",
+            "Use /compare if you want both workers to attempt an independent diagnosis.",
+          ],
+        }),
+      );
+      return;
     }
 
     state = setState(key, state, "FIX_RUNNING", `worker=${workerProvider}`, now());
@@ -214,8 +261,20 @@ export class IssueWorkflow {
     });
 
     if (!fix.fixed) {
-      setState(key, state, "FIX_FAILED", "worker did not produce a fix", now());
-      await this.provider.postComment(ref.id, this.fixFailureComment(fix.summary, fix.recommendation, fix.relevantLogs));
+      state = setState(key, state, "FIX_FAILED", "worker did not produce a fix", now());
+      const fixReport = this.renderFixReport({
+        issue,
+        fix,
+        status: "failed",
+        blockedReason: "The worker did not produce code changes that it considered a fix.",
+        nextSteps: [
+          fix.recommendation || "Review the reproduction report and improve the issue details.",
+          "Retry with /fix codex or /fix claude if another worker is available.",
+          "Fix manually if the worker cannot make progress.",
+        ],
+      });
+      writeFileSync(this.fixReportPath(paths.report), fixReport);
+      await this.postReportComment(ref.id, fixReport);
       return;
     }
 
@@ -229,10 +288,68 @@ export class IssueWorkflow {
     });
 
     if (!checks.success) {
-      setState(key, state, "FIX_FAILED", `checks failed: ${checks.failedCommand}`, now());
+      state = setState(key, state, "FIX_FAILED", `checks failed: ${checks.failedCommand}`, now());
+      const fixReport = this.renderFixReport({
+        issue,
+        fix,
+        checks,
+        status: "checks_failed",
+        blockedReason: `Project checks failed at ${checks.failedCommand ?? "an unknown command"}.`,
+        nextSteps: [
+          "Inspect the failing check logs in this report.",
+          "Update the fix or tests so the project checks pass.",
+          "Comment with /fix again to retry the full pipeline.",
+        ],
+      });
+      writeFileSync(this.fixReportPath(paths.report), fixReport);
+      await this.postReportComment(ref.id, fixReport);
+      return;
+    }
+
+    const fixReport = this.renderFixReport({
+      issue,
+      fix,
+      checks,
+      status: "checks_passed",
+      nextSteps: ["Running post-fix reproduction verification before opening a PR."],
+    });
+    writeFileSync(this.fixReportPath(paths.report), fixReport);
+    await this.postReportComment(ref.id, fixReport);
+
+    state = setState(key, state, "REPRO_RUNNING", `post-fix verification worker=${worker.provider}`, now());
+    const postFixRepro = await worker.runRepro({
+      provider: worker.provider,
+      issue,
+      workdir: paths.repo,
+      timeoutMs: this.config.workerTimeoutMs,
+    });
+
+    state = setState(
+      key,
+      state,
+      postFixRepro.reproduced ? "REPRODUCED" : "NOT_REPRODUCED",
+      `post-fix confidence=${postFixRepro.confidence}`,
+      now(),
+    );
+
+    const verificationReport = this.renderVerificationReport(issue, postFixRepro);
+    writeFileSync(this.verificationReportPath(paths.report), verificationReport);
+    await this.postReportComment(ref.id, verificationReport);
+
+    if (postFixRepro.reproduced) {
+      state = setState(key, state, "FIX_FAILED", "post-fix reproduction still fails", now());
       await this.provider.postComment(
         ref.id,
-        this.checksFailedComment(checks.failedCommand, checks.logs),
+        this.blockedComment({
+          title: "Fix stopped after verification",
+          reason:
+            "The worker produced a fix and checks passed, but the post-fix reproduction still reproduced the bug.",
+          nextSteps: [
+            "Review the post-fix verification report to see what still fails.",
+            "Improve the fix manually or comment with /fix again for another attempt.",
+            "Use /compare if you want a second diagnosis before retrying.",
+          ],
+        }),
       );
       return;
     }
@@ -242,10 +359,16 @@ export class IssueWorkflow {
       setState(key, state, "FIX_FAILED", "no GitHub write access to open PR", now());
       await this.provider.postComment(
         ref.id,
-        `✅ The ${workerProvider} worker produced a fix and all checks passed, but I have no ` +
-          "GitHub write access configured to push a branch / open a PR.\n\n" +
-          "Changed files:\n" +
-          (fix.filesChanged.map((f) => `- \`${f}\``).join("\n") || "_unknown_"),
+        this.blockedComment({
+          title: "Fix completed locally, but PR creation is blocked",
+          reason:
+            "The fix, project checks, and post-fix verification completed, but GitHub write access is not configured for this workflow.",
+          nextSteps: [
+            "Configure the GitHub client and authenticated push URL.",
+            "Push the changed branch manually from the run checkout.",
+            "Re-run /fix after GitHub write access is available.",
+          ],
+        }),
       );
       return;
     }
@@ -262,7 +385,15 @@ export class IssueWorkflow {
       setState(key, state, "FIX_FAILED", push.note ?? "push failed", now());
       await this.provider.postComment(
         ref.id,
-        `⚠️ The fix passed checks but I couldn't push it: ${push.note ?? "unknown error"}`,
+        this.blockedComment({
+          title: "Fix completed locally, but push failed",
+          reason: push.note ?? "Unknown git push failure.",
+          nextSteps: [
+            "Check branch permissions and token scopes.",
+            "Confirm the remote repository allows branch creation.",
+            "Re-run /fix after fixing GitHub push access.",
+          ],
+        }),
       );
       return;
     }
@@ -341,7 +472,10 @@ export class IssueWorkflow {
     const key = issue?.number ?? ref.id;
     const existing = loadRunState(key);
     if (existing) setState(key, existing, "STOPPED", "stopped by user", now());
-    await this.provider.postComment(ref.id, "🛑 Stopped. I won't take further action on this issue until you comment `/repro` or `/fix` again.");
+    await this.provider.postComment(
+      ref.id,
+      "# Workflow Stopped\n\nStopped. I won't take further action on this issue until you comment `/repro` or `/fix` again.",
+    );
   }
 
   // ── helpers ─────────────────────────────────────────────────────────────────
@@ -376,29 +510,152 @@ export class IssueWorkflow {
     return setState(key, state, next, note, now());
   }
 
-  private fixFailureComment(summary: string, recommendation: string, logs: string[]): string {
-    return `❌ I attempted a fix but it did not succeed.
-
-**Summary:** ${summary || "_none_"}
-
-**Recommendation:** ${recommendation || "_none_"}
-
-${logs.length ? "**Logs:**\n```\n" + redactAndTruncate(logs.join("\n"), this.config.maxLogChars) + "\n```" : ""}
-
-No PR was created.`;
+  private async postReportComment(issueId: string, report: string): Promise<void> {
+    const { body } = summarizeReportForComment(report, COMMENT_MAX);
+    await this.provider.postComment(issueId, body);
   }
 
-  private checksFailedComment(failedCommand: string | undefined, logs: string[]): string {
-    return `❌ A fix was produced but **project checks failed**, so I did not open a PR.
+  private fixReportPath(reportPath: string): string {
+    return reportPath.replace("report.md", "fix-report.md");
+  }
 
-**Failed command:** \`${failedCommand ?? "unknown"}\`
+  private verificationReportPath(reportPath: string): string {
+    return reportPath.replace("report.md", "verification-report.md");
+  }
 
-**Logs:**
-\`\`\`
-${redactAndTruncate(logs.join("\n\n"), this.config.maxLogChars)}
-\`\`\`
+  private renderFixReport(args: {
+    issue: IssueContext;
+    fix: FixWorkerResult;
+    checks?: ProjectChecksResult;
+    status: "failed" | "checks_failed" | "checks_passed";
+    blockedReason?: string;
+    nextSteps: string[];
+  }): string {
+    const { issue, fix, checks } = args;
+    const status =
+      args.status === "checks_passed"
+        ? "Fix produced and project checks passed"
+        : args.status === "checks_failed"
+          ? "Fix produced but project checks failed"
+          : "Fix failed";
 
-Reply \`/fix\` to retry, or fix the report and try again.`;
+    const filesChanged = fix.filesChanged.length
+      ? fix.filesChanged.map((f) => `- \`${f}\``).join("\n")
+      : "_None reported._";
+    const tests = fix.testsAddedOrUpdated.length
+      ? fix.testsAddedOrUpdated.map((f) => `- \`${f}\``).join("\n")
+      : "_None reported._";
+    const commands = fix.commandsRun.length
+      ? "```\n" + fix.commandsRun.join("\n") + "\n```"
+      : "_None reported._";
+    const workerLogs = fix.relevantLogs.length
+      ? "```\n" + redactAndTruncate(fix.relevantLogs.join("\n"), this.config.maxLogChars) + "\n```"
+      : "_None reported._";
+    const checkSummary = checks
+      ? [
+          `- Success: ${checks.success ? "yes" : "no"}`,
+          `- Failed command: ${checks.failedCommand ? `\`${checks.failedCommand}\`` : "_none_"}`,
+          "",
+          "### Check commands",
+          checks.commandsRun.length
+            ? checks.commandsRun.map((c) => `- \`${c}\``).join("\n")
+            : "_None._",
+          "",
+          "### Check logs",
+          checks.logs.length
+            ? "```\n" + redactAndTruncate(checks.logs.join("\n\n"), this.config.maxLogChars) + "\n```"
+            : "_None._",
+        ].join("\n")
+      : "_Checks were not run because the fix did not complete._";
+
+    return `# Fix Report
+
+## Issue
+
+- Source: ${issue.provider}
+- URL: ${issue.url}
+- Title: ${issue.title}
+- Labels: ${issue.labels.join(", ") || "_none_"}
+
+## Status
+
+- Result: ${status}
+- Worker used: ${fix.provider}${fix.mocked ? " _(MOCK - CLI not installed)_" : ""}
+- Confidence: ${fix.confidence}/100
+
+## Summary
+
+${fix.summary || "_No summary provided._"}
+
+## Files changed
+
+${filesChanged}
+
+## Tests added or updated
+
+${tests}
+
+## Commands run by worker
+
+${commands}
+
+## Worker logs
+
+${workerLogs}
+
+## Project checks
+
+${checkSummary}
+
+## Risks
+
+${fix.risks.length ? fix.risks.map((r) => `- ${r}`).join("\n") : "_None reported._"}
+
+## Blocker
+
+${args.blockedReason ?? "_None._"}
+
+## Recommendation
+
+${fix.recommendation || "_None._"}
+
+## Next steps
+
+${args.nextSteps.map((s) => `- ${s}`).join("\n") || "_None._"}
+`;
+  }
+
+  private renderVerificationReport(issue: IssueContext, result: ReproWorkerResult): string {
+    const report = renderReproductionReport({
+      issue,
+      result,
+      environment: issue.parsedBug.environment,
+    }).replace("# Reproduction Report", "# Post-Fix Verification Report");
+
+    return `${report}
+## Verification judgement
+
+- Expected after fix: reproduced = no
+- Actual after fix: reproduced = ${result.reproduced ? "yes" : "no"}
+- Decision: ${result.reproduced ? "do not open a PR yet" : "safe to continue to PR creation"}
+`;
+  }
+
+  private blockedComment(args: {
+    title: string;
+    reason: string;
+    nextSteps: string[];
+  }): string {
+    return `# Fix Blocked
+
+## ${args.title}
+
+**Why it stopped:** ${args.reason}
+
+**Next steps:**
+${args.nextSteps.map((s) => `- ${s}`).join("\n")}
+
+No PR was created.`;
   }
 
   private prCreatedComment(
@@ -412,6 +669,8 @@ Reply \`/fix\` to retry, or fix the report and try again.`;
 **Worker:** ${fix.provider}
 
 **Summary:** ${fix.summary}
+
+**Post-fix verification:** passed; the bug was not reproduced after the fix.
 
 **Checks passed:**
 ${checks.map((c) => `- \`${c}\``).join("\n") || "_none_"}

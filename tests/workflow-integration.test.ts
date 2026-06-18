@@ -54,8 +54,9 @@ function issueNoInfo(number: number): IssueContext {
 }
 
 const REPRO_ISSUE = 990001;
-const GATE_ISSUE = 990002;
+const FIX_PIPELINE_ISSUE = 990002;
 const NOINFO_ISSUE = 990003;
+const NOINFO_FIX_ISSUE = 990004;
 
 beforeAll(() => {
   process.env.WORKER_MOCK = "1"; // force mock workers (no Codex/Claude CLI needed)
@@ -63,7 +64,7 @@ beforeAll(() => {
 
 afterAll(() => {
   delete process.env.WORKER_MOCK;
-  for (const n of [REPRO_ISSUE, GATE_ISSUE, NOINFO_ISSUE]) {
+  for (const n of [REPRO_ISSUE, FIX_PIPELINE_ISSUE, NOINFO_ISSUE, NOINFO_FIX_ISSUE]) {
     rmSync(runPaths(n).root, { recursive: true, force: true });
   }
 });
@@ -90,23 +91,25 @@ describe("IssueWorkflow (mock workers, no git)", () => {
     expect(loadRunState(NOINFO_ISSUE)?.state).toBe("NEEDS_MORE_INFO");
   });
 
-  it("/fix is blocked until a reproduction report exists (approval gate)", async () => {
-    const provider = new FakeProvider(issueWithSteps(GATE_ISSUE));
+  it("/fix asks for more info before starting the full pipeline when issue details are too thin", async () => {
+    const provider = new FakeProvider(issueNoInfo(NOINFO_FIX_ISSUE));
     const wf = new IssueWorkflow({ provider });
 
-    await wf.runFix({ provider: "github", id: String(GATE_ISSUE) });
+    await wf.runFix({ provider: "github", id: String(NOINFO_FIX_ISSUE) });
 
-    expect(provider.comments.some((c) => c.includes("there's no reproduction report"))).toBe(true);
+    expect(provider.comments.some((c) => c.includes("need more information"))).toBe(true);
+    expect(loadRunState(NOINFO_FIX_ISSUE)?.state).toBe("NEEDS_MORE_INFO");
   });
 
-  it("/fix with a mock worker (no real change) ends in FIX_FAILED, no PR", async () => {
-    const provider = new FakeProvider(issueWithSteps(REPRO_ISSUE));
+  it("/fix runs reproduction first, then reports fix failure when the worker cannot change code", async () => {
+    const provider = new FakeProvider(issueWithSteps(FIX_PIPELINE_ISSUE));
     const wf = new IssueWorkflow({ provider, config: { defaultWorker: "claude" } });
 
-    // REPRO_ISSUE already has a report + WAITING_FOR_APPROVAL from the first test.
-    await wf.runFix({ provider: "github", id: String(REPRO_ISSUE) });
+    await wf.runFix({ provider: "github", id: String(FIX_PIPELINE_ISSUE) });
 
-    expect(loadRunState(REPRO_ISSUE)?.state).toBe("FIX_FAILED");
-    expect(provider.comments.some((c) => c.includes("did not succeed"))).toBe(true);
+    expect(provider.comments.some((c) => c.includes("Reproduction Report"))).toBe(true);
+    expect(provider.comments.some((c) => c.includes("Fix Report"))).toBe(true);
+    expect(existsSync(runPaths(FIX_PIPELINE_ISSUE).report)).toBe(true);
+    expect(loadRunState(FIX_PIPELINE_ISSUE)?.state).toBe("FIX_FAILED");
   });
 });

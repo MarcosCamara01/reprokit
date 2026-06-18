@@ -17,8 +17,8 @@ A GitHub-issue agent that reacts to slash-commands in issue comments:
 | Command | Action |
 |---|---|
 | `/repro` | Reproduce the bug in an isolated checkout and post a reproduction report |
-| `/fix` | Fix with the default worker (**only after you approve**) |
-| `/fix codex` / `/fix claude` | Fix with a specific worker |
+| `/fix` | Run the full fix pipeline: reproduce, fix, check, verify again, then open a PR |
+| `/fix codex` / `/fix claude` | Run the full fix pipeline with a specific worker |
 | `/compare` | Run both workers read-only and compare diagnoses |
 | `/stop` | Stop work on the issue |
 
@@ -27,6 +27,9 @@ The core flow:
 ```
 GitHub issue → /repro → worker → reproduction report → human approval → /fix → checks → PR
 ```
+
+Current `/fix` behavior reruns reproduction, posts a fix report, runs checks,
+and verifies again before PR creation, even if `/repro` was already used.
 
 ## 2. What the MVP does
 

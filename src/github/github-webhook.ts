@@ -7,6 +7,10 @@ import type { IssueRef } from "../types.ts";
 const log = createLogger("webhook");
 const GENERATED_COMMENT_PREFIXES = [
   "# Reproduction Report",
+  "# Fix Report",
+  "# Post-Fix Verification Report",
+  "# Fix Blocked",
+  "# Workflow Stopped",
   "# Worker Comparison",
   "I need more information before trying to reproduce this bug.",
 ];

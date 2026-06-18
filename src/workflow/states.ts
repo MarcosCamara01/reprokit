@@ -27,8 +27,9 @@ export type WorkflowState = (typeof WORKFLOW_STATES)[number];
 
 /**
  * Allowed transitions. Kept permissive on purpose (an issue can be re-triaged,
- * re-reproduced, etc.) but encodes the important guard: you cannot enter a FIX
- * state without first having WAITING_FOR_APPROVAL (human-in-the-loop).
+ * re-reproduced, retried after a failed fix, etc.). The orchestrator owns the
+ * practical gates: `/fix` now runs reproduction before code changes, then
+ * checks and verifies again before PR creation.
  */
 const TRANSITIONS: Record<WorkflowState, WorkflowState[]> = {
   NEW_ISSUE: ["TRIAGED", "STOPPED"],
@@ -51,5 +52,5 @@ export function canTransition(from: WorkflowState, to: WorkflowState): boolean {
   return TRANSITIONS[from]?.includes(to) ?? false;
 }
 
-/** The state that gates code modification. Fixing requires having reached this. */
+/** Historical approval marker kept for compatibility with persisted run state. */
 export const APPROVAL_GATE: WorkflowState = "WAITING_FOR_APPROVAL";
