@@ -57,6 +57,7 @@ const REPRO_ISSUE = 990001;
 const FIX_PIPELINE_ISSUE = 990002;
 const NOINFO_ISSUE = 990003;
 const NOINFO_FIX_ISSUE = 990004;
+const REPRO_OVERRIDE_ISSUE = 990005;
 
 beforeAll(() => {
   process.env.WORKER_MOCK = "1"; // force mock workers (no Codex/Claude CLI needed)
@@ -64,7 +65,7 @@ beforeAll(() => {
 
 afterAll(() => {
   delete process.env.WORKER_MOCK;
-  for (const n of [REPRO_ISSUE, FIX_PIPELINE_ISSUE, NOINFO_ISSUE, NOINFO_FIX_ISSUE]) {
+  for (const n of [REPRO_ISSUE, FIX_PIPELINE_ISSUE, NOINFO_ISSUE, NOINFO_FIX_ISSUE, REPRO_OVERRIDE_ISSUE]) {
     rmSync(runPaths(n).root, { recursive: true, force: true });
   }
 });
@@ -81,6 +82,20 @@ describe("IssueWorkflow (mock workers, no git)", () => {
     expect(provider.comments.some((c) => c.includes("## What To Do Next"))).toBe(true);
     expect(existsSync(runPaths(REPRO_ISSUE).report)).toBe(true);
     expect(loadRunState(REPRO_ISSUE)?.state).toBe("WAITING_FOR_APPROVAL");
+  });
+
+  it("dispatch(/repro codex) honors the provider override over the default worker", async () => {
+    const provider = new FakeProvider(issueWithSteps(REPRO_OVERRIDE_ISSUE));
+    const wf = new IssueWorkflow({ provider, config: { defaultWorker: "claude" } });
+
+    await wf.dispatch(
+      { provider: "github", id: String(REPRO_OVERRIDE_ISSUE) },
+      { type: "repro", provider: "codex" },
+    );
+
+    expect(provider.comments.some((c) => c.includes("Worker used: codex"))).toBe(true);
+    expect(provider.comments.some((c) => c.includes("Worker used: claude"))).toBe(false);
+    expect(loadRunState(REPRO_OVERRIDE_ISSUE)?.worker).toBe("codex");
   });
 
   it("/repro asks for more info when the report is too thin", async () => {

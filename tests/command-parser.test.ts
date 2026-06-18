@@ -6,6 +6,18 @@ describe("parseIssueCommand", () => {
     expect(parseIssueCommand("/repro")).toEqual({ type: "repro" });
   });
 
+  it("parses /repro codex (provider override)", () => {
+    expect(parseIssueCommand("/repro codex")).toEqual({ type: "repro", provider: "codex" });
+  });
+
+  it("parses /repro claude (provider override)", () => {
+    expect(parseIssueCommand("/repro claude")).toEqual({ type: "repro", provider: "claude" });
+  });
+
+  it("ignores an unknown worker arg for /repro", () => {
+    expect(parseIssueCommand("/repro banana")).toEqual({ type: "repro" });
+  });
+
   it("parses /fix with no worker", () => {
     expect(parseIssueCommand("/fix")).toEqual({ type: "fix" });
   });

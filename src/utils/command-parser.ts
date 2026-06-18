@@ -4,7 +4,7 @@ import type { WorkerProvider } from "../types.ts";
  * A command parsed from a GitHub/Linear issue comment.
  */
 export type IssueCommand =
-  | { type: "repro" }
+  | { type: "repro"; provider?: WorkerProvider }
   | { type: "fix"; provider?: WorkerProvider }
   | { type: "compare" }
   | { type: "stop" }
@@ -43,8 +43,10 @@ export function parseIssueCommand(raw: string): IssueCommand {
 
   switch (verb) {
     case "repro":
-    case "reproduce":
-      return { type: "repro" };
+    case "reproduce": {
+      const provider = WORKERS.find((w) => w === arg);
+      return provider ? { type: "repro", provider } : { type: "repro" };
+    }
     case "fix": {
       const provider = WORKERS.find((w) => w === arg);
       return provider ? { type: "fix", provider } : { type: "fix" };
