@@ -288,6 +288,13 @@ If the binary is somewhere else, set:
 CLAUDE_BIN=/path/to/claude
 ```
 
+To force a specific Claude Code model or effort level, set:
+
+```env
+CLAUDE_MODEL=claude-opus-4-8
+CLAUDE_EFFORT=high
+```
+
 ## GitHub Webhook Setup
 
 In your GitHub repository:

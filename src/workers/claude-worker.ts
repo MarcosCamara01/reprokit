@@ -34,6 +34,8 @@ import { MockWorker } from "./mock-worker.ts";
 export class ClaudeWorker implements CodingWorker {
   readonly provider = "claude" as const;
   private readonly bin = process.env.CLAUDE_BIN || "claude";
+  private readonly model = process.env.CLAUDE_MODEL?.trim();
+  private readonly effort = process.env.CLAUDE_EFFORT?.trim();
 
   async isAvailable(): Promise<boolean> {
     if (process.env.WORKER_MOCK === "1") return false;
@@ -47,7 +49,7 @@ export class ClaudeWorker implements CodingWorker {
   async runRepro(input: ReproWorkerInput): Promise<ReproWorkerResult> {
     if (!(await this.isAvailable())) return this.mock().runRepro(input);
     const prompt = buildReproPrompt(input.issue, input.contextNote);
-    const res = await safeExec(this.bin, ["-p", prompt], {
+    const res = await safeExec(this.bin, buildClaudeArgs(prompt, this.model, this.effort), {
       cwd: input.workdir,
       timeoutMs: input.timeoutMs,
     });
@@ -69,7 +71,7 @@ export class ClaudeWorker implements CodingWorker {
       /* keep fallback */
     }
     const prompt = buildFixPrompt(input.issue, report);
-    const res = await safeExec(this.bin, ["-p", prompt], {
+    const res = await safeExec(this.bin, buildClaudeArgs(prompt, this.model, this.effort), {
       cwd: input.workdir,
       timeoutMs: input.timeoutMs,
     });
@@ -77,4 +79,16 @@ export class ClaudeWorker implements CodingWorker {
     writeRawOutput(dirname(input.workdir), "claude-fix.txt", redactSecrets(combined));
     return coerceFixResult("claude", extractJsonResult(res.stdout));
   }
+}
+
+export function buildClaudeArgs(
+  prompt: string,
+  model?: string,
+  effort?: string,
+): string[] {
+  const args = ["-p"];
+  if (model) args.push("--model", model);
+  if (effort) args.push("--effort", effort);
+  args.push(prompt);
+  return args;
 }

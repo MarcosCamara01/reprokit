@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { buildClaudeArgs } from "../src/workers/claude-worker.ts";
 import { buildReproPrompt } from "../src/workers/prompts.ts";
 import type { IssueContext } from "../src/types.ts";
 
@@ -28,5 +29,16 @@ describe("worker prompts", () => {
 
     expect(prompt).toContain("Additional context:");
     expect(prompt).toContain("Validate the current working tree");
+  });
+
+  it("passes Claude Code model and effort overrides when provided", () => {
+    expect(buildClaudeArgs("diagnose this", "claude-opus-4-8", "high")).toEqual([
+      "-p",
+      "--model",
+      "claude-opus-4-8",
+      "--effort",
+      "high",
+      "diagnose this",
+    ]);
   });
 });
