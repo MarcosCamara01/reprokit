@@ -6,6 +6,14 @@ describe("parseIssueCommand", () => {
     expect(parseIssueCommand("/repro")).toEqual({ type: "repro" });
   });
 
+  it("parses /repro codex", () => {
+    expect(parseIssueCommand("/repro codex")).toEqual({ type: "repro", provider: "codex" });
+  });
+
+  it("parses /repro claude", () => {
+    expect(parseIssueCommand("/repro claude")).toEqual({ type: "repro", provider: "claude" });
+  });
+
   it("parses /fix with no worker", () => {
     expect(parseIssueCommand("/fix")).toEqual({ type: "fix" });
   });
@@ -28,7 +36,7 @@ describe("parseIssueCommand", () => {
 
   it("is case-insensitive and tolerates whitespace", () => {
     expect(parseIssueCommand("   /Fix   CODEX  ")).toEqual({ type: "fix", provider: "codex" });
-    expect(parseIssueCommand("/REPRO")).toEqual({ type: "repro" });
+    expect(parseIssueCommand("/REPRO CODEX")).toEqual({ type: "repro", provider: "codex" });
   });
 
   it("finds a command inside surrounding prose / multiline", () => {
@@ -50,6 +58,10 @@ describe("parseIssueCommand", () => {
 
   it("ignores an unknown worker arg for /fix", () => {
     expect(parseIssueCommand("/fix banana")).toEqual({ type: "fix" });
+  });
+
+  it("ignores an unknown worker arg for /repro", () => {
+    expect(parseIssueCommand("/repro banana")).toEqual({ type: "repro" });
   });
 
   it("returns unknown for non-commands", () => {
