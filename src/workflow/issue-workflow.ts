@@ -12,7 +12,7 @@ import type { GitHubClient } from "../github/github-client.ts";
 import { triage } from "../providers/parse-bug.ts";
 import { ensureRunDirs, runPaths } from "../utils/paths.ts";
 import { createLogger, type Logger } from "../utils/logger.ts";
-import { redactAndTruncate } from "../utils/redact-secrets.ts";
+import { redactAndTruncate, redactSecrets } from "../utils/redact-secrets.ts";
 import {
   loadRunState,
   saveRunState,
@@ -474,7 +474,34 @@ export class IssueWorkflow {
     if (existing) setState(key, existing, "STOPPED", "stopped by user", now());
     await this.provider.postComment(
       ref.id,
-      "# Workflow Stopped\n\nStopped. I won't take further action on this issue until you comment `/repro` or `/fix` again.",
+      `# Workflow Stopped
+
+## What I Tried
+
+- Received a stop command for this issue.
+- Marked the current workflow state as stopped.
+
+## What I Found
+
+The workflow was stopped by request.
+
+## What Changed
+
+_No code changes were made._
+
+## Checks Passed
+
+_No project checks were run._
+
+## Why It Blocked
+
+Work was intentionally stopped by a human command.
+
+## What To Do Next
+
+- Comment \`/repro\` to start reproduction again.
+- Comment \`/fix\` to start the full fix pipeline again.
+`,
     );
   }
 
@@ -532,7 +559,7 @@ export class IssueWorkflow {
     nextSteps: string[];
   }): string {
     const { issue, fix, checks } = args;
-    const status =
+    const outcome =
       args.status === "checks_passed"
         ? "Fix produced and project checks passed"
         : args.status === "checks_failed"
@@ -551,22 +578,27 @@ export class IssueWorkflow {
     const workerLogs = fix.relevantLogs.length
       ? "```\n" + redactAndTruncate(fix.relevantLogs.join("\n"), this.config.maxLogChars) + "\n```"
       : "_None reported._";
-    const checkSummary = checks
-      ? [
-          `- Success: ${checks.success ? "yes" : "no"}`,
-          `- Failed command: ${checks.failedCommand ? `\`${checks.failedCommand}\`` : "_none_"}`,
-          "",
-          "### Check commands",
-          checks.commandsRun.length
-            ? checks.commandsRun.map((c) => `- \`${c}\``).join("\n")
-            : "_None._",
-          "",
-          "### Check logs",
-          checks.logs.length
-            ? "```\n" + redactAndTruncate(checks.logs.join("\n\n"), this.config.maxLogChars) + "\n```"
-            : "_None._",
-        ].join("\n")
+    const failedCommand = checks?.failedCommand;
+    const passedChecks = checks
+      ? checks.success
+        ? checks.commandsRun
+        : checks.commandsRun.filter((command) => command !== failedCommand)
+      : [];
+    const checksPassed = checks
+      ? checks.success
+        ? checks.commandsRun.length
+          ? checks.commandsRun.map((c) => `- \`${c}\``).join("\n")
+          : "_No project check scripts were detected; validation skipped successfully._"
+        : [
+            passedChecks.length
+              ? passedChecks.map((c) => `- \`${c}\``).join("\n")
+              : "_No project checks passed before the workflow stopped._",
+            `\nFailed command: ${failedCommand ? `\`${failedCommand}\`` : "_unknown_"}`,
+          ].join("\n")
       : "_Checks were not run because the fix did not complete._";
+    const checkLogs = checks?.logs.length
+      ? "```\n" + redactAndTruncate(checks.logs.join("\n\n"), this.config.maxLogChars) + "\n```"
+      : "_None._";
 
     return `# Fix Report
 
@@ -577,68 +609,150 @@ export class IssueWorkflow {
 - Title: ${issue.title}
 - Labels: ${issue.labels.join(", ") || "_none_"}
 
-## Status
+## Outcome
 
-- Result: ${status}
+- Result: ${outcome}
 - Worker used: ${fix.provider}${fix.mocked ? " _(MOCK - CLI not installed)_" : ""}
 - Confidence: ${fix.confidence}/100
 
-## Summary
+## What I Tried
 
-${fix.summary || "_No summary provided._"}
+- Ran the selected ${fix.provider} worker against the isolated checkout.
+- Collected worker commands, logs, and reported file changes.
+- ${checks ? "Ran project validation after the worker finished." : "Skipped project validation because the worker did not complete a fix."}
 
-## Files changed
+## What I Found
 
-${filesChanged}
-
-## Tests added or updated
-
-${tests}
-
-## Commands run by worker
-
-${commands}
-
-## Worker logs
-
-${workerLogs}
-
-## Project checks
-
-${checkSummary}
-
-## Risks
+- Summary: ${fix.summary || "_No summary provided._"}
+- Recommendation: ${fix.recommendation || "_None._"}
+- Risks:
 
 ${fix.risks.length ? fix.risks.map((r) => `- ${r}`).join("\n") : "_None reported._"}
 
-## Blocker
+## What Changed
+
+### Files Changed
+
+${filesChanged}
+
+### Tests Added Or Updated
+
+${tests}
+
+## Checks Passed
+
+${checksPassed}
+
+## Why It Blocked
 
 ${args.blockedReason ?? "_None._"}
 
-## Recommendation
-
-${fix.recommendation || "_None._"}
-
-## Next steps
+## What To Do Next
 
 ${args.nextSteps.map((s) => `- ${s}`).join("\n") || "_None._"}
+
+## Evidence
+
+### Commands Run By Worker
+
+${commands}
+
+### Worker Logs
+
+${workerLogs}
+
+### Project Check Logs
+
+${checkLogs}
 `;
   }
 
   private renderVerificationReport(issue: IssueContext, result: ReproWorkerResult): string {
-    const report = renderReproductionReport({
-      issue,
-      result,
-      environment: issue.parsedBug.environment,
-    }).replace("# Reproduction Report", "# Post-Fix Verification Report");
+    const commands = result.commandsRun.length
+      ? "```\n" + result.commandsRun.join("\n") + "\n```"
+      : "_None reported._";
+    const logs = result.relevantLogs.length
+      ? "```\n" + redactAndTruncate(result.relevantLogs.join("\n"), this.config.maxLogChars) + "\n```"
+      : "_None reported._";
+    const suspectedFiles = result.suspectedFiles.length
+      ? result.suspectedFiles.map((f) => `- \`${f}\``).join("\n")
+      : "_None reported._";
+    const blocker = result.reproduced
+      ? "The bug still reproduced after the fix, so opening a PR would be unsafe."
+      : "_None. The bug was not reproduced after the fix._";
+    const nextSteps = result.reproduced
+      ? [
+          "Review the verification evidence to see what still fails.",
+          "Update the fix manually or comment `/fix` again for another attempt.",
+          "Use `/compare` if you want another diagnosis before retrying.",
+        ]
+      : [
+          "Continue to PR creation.",
+          "Review the PR before merging.",
+          "Ask for another `/fix` run only if the PR review finds a problem.",
+        ];
 
-    return `${report}
-## Verification judgement
+    return redactSecrets(`# Post-Fix Verification Report
+
+## Issue
+
+- Source: ${issue.provider}
+- URL: ${issue.url}
+- Title: ${issue.title}
+- Labels: ${issue.labels.join(", ") || "_none_"}
+
+## Outcome
 
 - Expected after fix: reproduced = no
 - Actual after fix: reproduced = ${result.reproduced ? "yes" : "no"}
 - Decision: ${result.reproduced ? "do not open a PR yet" : "safe to continue to PR creation"}
-`;
+- Worker used: ${result.provider}${result.mocked ? " (MOCK - CLI not installed)" : ""}
+- Confidence: ${result.confidence}/100
+
+## What I Tried
+
+- Re-ran the reproduction after the worker fix and project checks completed.
+- Used the same issue context against the fixed checkout.
+- Checked whether the original bug still reproduces.
+
+## What I Found
+
+- Summary: ${result.summary || "_No summary provided._"}
+- Suspected cause: ${result.suspectedCause ?? "_Unknown._"}
+- Suspected files:
+
+${suspectedFiles}
+
+## What Changed
+
+_No additional code changes were made during verification. See the Fix Report for the worker changes._
+
+## Checks Passed
+
+Project checks passed before this post-fix verification started.
+
+## Why It Blocked
+
+${blocker}
+
+## What To Do Next
+
+${nextSteps.map((s) => `- ${s}`).join("\n")}
+
+## Evidence
+
+### Commands Run
+
+${commands}
+
+### Logs
+
+${logs}
+
+### Recommendation
+
+${result.recommendation || "_None._"}
+`);
   }
 
   private blockedComment(args: {
@@ -648,11 +762,34 @@ ${args.nextSteps.map((s) => `- ${s}`).join("\n") || "_None._"}
   }): string {
     return `# Fix Blocked
 
-## ${args.title}
+## Outcome
 
-**Why it stopped:** ${args.reason}
+- Result: ${args.title}
+- PR created: no
 
-**Next steps:**
+## What I Tried
+
+- Ran the workflow until it reached a safety gate.
+- Stopped before creating or updating a pull request.
+
+## What I Found
+
+${args.reason}
+
+## What Changed
+
+_No changes were pushed._
+
+## Checks Passed
+
+_No additional checks passed after the blocker._
+
+## Why It Blocked
+
+${args.reason}
+
+## What To Do Next
+
 ${args.nextSteps.map((s) => `- ${s}`).join("\n")}
 
 No PR was created.`;
@@ -663,19 +800,46 @@ No PR was created.`;
     fix: { provider: string; summary: string; risks: string[] },
     checks: string[],
   ): string {
-    return `✅ Fix ready for review — **PR not auto-merged.**
+    return `# Fix Ready For Review
 
-**Pull request:** ${prUrl}
-**Worker:** ${fix.provider}
+## Outcome
 
-**Summary:** ${fix.summary}
+- Pull request: ${prUrl}
+- Worker: ${fix.provider}
+- Auto-merged: no
 
-**Post-fix verification:** passed; the bug was not reproduced after the fix.
+## What I Tried
 
-**Checks passed:**
+- Applied the worker fix in an isolated checkout.
+- Ran project checks.
+- Ran post-fix verification.
+- Pushed a branch and opened a PR.
+
+## What I Found
+
+${fix.summary}
+
+## What Changed
+
+See the pull request diff: ${prUrl}
+
+## Checks Passed
+
 ${checks.map((c) => `- \`${c}\``).join("\n") || "_none_"}
 
-${fix.risks.length ? "**Risks:**\n" + fix.risks.map((r) => `- ${r}`).join("\n") : ""}`;
+## Why It Blocked
+
+_None. The fix passed checks and post-fix verification._
+
+## What To Do Next
+
+- Review the pull request.
+- Merge only after human review.
+- If review finds a problem, comment \`/fix\` again after updating the issue context.
+
+## Risks
+
+${fix.risks.length ? fix.risks.map((r) => `- ${r}`).join("\n") : "_None reported._"}`;
   }
 }
 
@@ -683,7 +847,35 @@ function missingInfoComment(missing: string[]): string {
   const list = (missing.length ? missing : ["steps to reproduce", "expected behavior", "actual behavior"])
     .map((m, i) => `${i + 1}. ${m.charAt(0).toUpperCase()}${m.slice(1)}`)
     .join("\n");
-  return `I need more information before trying to reproduce this bug.
+  return `# More Information Needed
+
+## Outcome
+
+- Result: waiting for more issue details.
+- PR created: no
+
+## What I Tried
+
+- Reviewed the issue details before running the workflow.
+- Checked whether the issue had enough evidence to reproduce safely.
+
+## What I Found
+
+The issue is too thin to reproduce or fix without guessing.
+
+## What Changed
+
+_No code changes were made._
+
+## Checks Passed
+
+_No project checks were run._
+
+## Why It Blocked
+
+The workflow needs clearer reproduction details before it can proceed.
+
+## What To Do Next
 
 Please provide:
 
@@ -691,7 +883,7 @@ ${list}
 4. Browser/device, if relevant
 5. Screenshots or logs, if available
 
-Then comment \`/repro\` again.`;
+Then comment \`/repro\` or \`/fix\` again.`;
 }
 
 export function readReportFile(path: string): string | null {

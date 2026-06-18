@@ -10,9 +10,10 @@ const GENERATED_COMMENT_PREFIXES = [
   "# Fix Report",
   "# Post-Fix Verification Report",
   "# Fix Blocked",
+  "# Fix Ready For Review",
   "# Workflow Stopped",
   "# Worker Comparison",
-  "I need more information before trying to reproduce this bug.",
+  "# More Information Needed",
 ];
 
 /**

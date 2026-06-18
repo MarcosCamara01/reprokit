@@ -45,7 +45,7 @@ describe("parseWebhookEvent", () => {
       parseWebhookEvent(
         "issue_comment",
         issueCommentPayload(
-          "I need more information before trying to reproduce this bug.\n\nThen comment `/repro` again.",
+          "# More Information Needed\n\nThen comment `/repro` or `/fix` again.",
         ),
       ),
     ).toBeNull();
@@ -53,10 +53,12 @@ describe("parseWebhookEvent", () => {
 
   it("ignores generated fix pipeline reports even when they mention commands", () => {
     for (const body of [
-      "# Fix Report\n\nNext steps:\n- Comment with /fix again.",
+      "# Fix Report\n\n## What To Do Next\n- Comment with /fix again.",
       "# Post-Fix Verification Report\n\nReply with /fix if needed.",
       "# Fix Blocked\n\nUse /compare or /fix after updating the issue.",
+      "# Fix Ready For Review\n\nComment /fix again if review finds a problem.",
       "# Workflow Stopped\n\nComment /repro when ready.",
+      "# Worker Comparison Report\n\nComment /fix codex when ready.",
     ]) {
       expect(parseWebhookEvent("issue_comment", issueCommentPayload(body))).toBeNull();
     }

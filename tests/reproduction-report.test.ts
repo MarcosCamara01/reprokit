@@ -38,31 +38,37 @@ function makeResult(overrides: Partial<ReproWorkerResult> = {}): ReproWorkerResu
 }
 
 describe("renderReproductionReport", () => {
-  it("includes all required sections", () => {
+  it("includes all required decision sections", () => {
     const md = renderReproductionReport({ issue: makeIssue(), result: makeResult() });
     for (const section of [
       "# Reproduction Report",
       "## Issue",
-      "## Status",
-      "## Summary",
-      "## Steps to reproduce",
+      "## Outcome",
+      "## What I Tried",
+      "## What I Found",
+      "## What Changed",
+      "## Checks Passed",
+      "## Why It Blocked",
+      "## What To Do Next",
       "## Evidence",
-      "## Suspected cause",
-      "## Suspected files",
-      "## Recommendation",
-      "## Next action",
     ]) {
       expect(md).toContain(section);
     }
   });
 
   it("reflects reproduced status and confidence", () => {
-    const yes = renderReproductionReport({ issue: makeIssue(), result: makeResult({ reproduced: true, confidence: 80 }) });
-    expect(yes).toContain("Reproduced: ✅ yes");
+    const yes = renderReproductionReport({
+      issue: makeIssue(),
+      result: makeResult({ reproduced: true, confidence: 80 }),
+    });
+    expect(yes).toContain("Reproduced: yes");
     expect(yes).toContain("80/100");
 
-    const no = renderReproductionReport({ issue: makeIssue(), result: makeResult({ reproduced: false }) });
-    expect(no).toContain("Reproduced: ❌ no");
+    const no = renderReproductionReport({
+      issue: makeIssue(),
+      result: makeResult({ reproduced: false }),
+    });
+    expect(no).toContain("Reproduced: no");
   });
 
   it("marks mocked worker output", () => {
@@ -97,11 +103,12 @@ describe("summarizeReportForComment", () => {
     expect(body).toBe(md);
   });
 
-  it("trims when over the limit but keeps head + recommendation", () => {
+  it("trims when over the limit but keeps the decision sections", () => {
     const md = renderReproductionReport({ issue: makeIssue(), result: makeResult() });
-    const { body, truncated } = summarizeReportForComment(md, 200);
+    const { body, truncated } = summarizeReportForComment(md, 300);
     expect(truncated).toBe(true);
     expect(body).toContain("# Reproduction Report");
-    expect(body.length).toBeLessThanOrEqual(200);
+    expect(body).toContain("## Outcome");
+    expect(body.length).toBeLessThanOrEqual(300);
   });
 });

@@ -18,13 +18,17 @@ function codeBlock(items: string[]): string {
 }
 
 /**
- * Render the canonical reproduction report as markdown. Pure & deterministic
+ * Render the canonical reproduction report as markdown. Pure and deterministic
  * (no timestamps, no fs), so it is straightforward to unit test. All free text
  * is run through secret redaction.
  */
 export function renderReproductionReport(input: ReproReportInput): string {
   const { issue, result } = input;
   const r = result;
+  const worker = `${r.provider}${r.mocked ? " (MOCK - CLI not installed)" : ""}`;
+  const blocker = r.reproduced
+    ? "_None. The bug was reproduced and a fix can be attempted after review._"
+    : "The bug was not reproduced. A fix should wait for clearer evidence, logs, or a failing test.";
 
   const md = `# Reproduction Report
 
@@ -35,24 +39,52 @@ export function renderReproductionReport(input: ReproReportInput): string {
 - Title: ${issue.title}
 - Labels: ${issue.labels.join(", ") || "_none_"}
 
-## Status
+## Outcome
 
-- Reproduced: ${r.reproduced ? "✅ yes" : "❌ no"}
+- Reproduced: ${r.reproduced ? "yes" : "no"}
 - Confidence: ${r.confidence}/100
-- Worker used: ${r.provider}${r.mocked ? " _(MOCK — CLI not installed)_" : ""}
+- Worker used: ${worker}
 - Environment: ${input.environment ?? issue.parsedBug.environment ?? "_unknown_"}
 
-## Summary
+## What I Tried
 
-${r.summary || "_No summary provided._"}
-
-## Steps to reproduce
+- Prepared an isolated checkout for the issue.
+- Asked the ${r.provider} worker to reproduce the reported behavior.
+- Followed or inferred these reproduction steps:
 
 ${bullets(r.reproductionSteps)}
 
+## What I Found
+
+- Summary: ${r.summary || "_No summary provided._"}
+- Suspected cause: ${r.suspectedCause ?? "_Unknown._"}
+- Suspected files:
+
+${bullets(r.suspectedFiles)}
+
+## What Changed
+
+_No code changes were made. Reproduction runs are read-only._
+
+## Checks Passed
+
+_No project checks are required in reproduction-only mode. Worker commands are listed under Evidence._
+
+## Why It Blocked
+
+${blocker}
+
+## What To Do Next
+
+- Comment \`/fix\` to attempt a fix with the default worker.
+- Comment \`/fix codex\` to attempt a fix with Codex.
+- Comment \`/fix claude\` to attempt a fix with Claude Code.
+- Comment \`/compare\` to run both workers and compare diagnoses.
+- Comment \`/stop\` to stop work on this issue.
+
 ## Evidence
 
-### Commands run
+### Commands Run
 
 ${codeBlock(r.commandsRun)}
 
@@ -64,31 +96,13 @@ ${codeBlock(r.relevantLogs)}
 
 _None captured in this run._
 
-### Failing tests
+### Failing Tests
 
 ${bullets(r.createdFiles ?? [], "_No reproduction test created._")}
 
-## Suspected cause
-
-${r.suspectedCause ?? "_Unknown._"}
-
-## Suspected files
-
-${bullets(r.suspectedFiles)}
-
-## Recommendation
+### Recommendation
 
 ${r.recommendation || "_None._"}
-
-## Next action
-
-Reply with:
-
-- \`/fix\` — attempt a fix with the default worker
-- \`/fix codex\` — attempt a fix with Codex
-- \`/fix claude\` — attempt a fix with Claude Code
-- \`/compare\` — run both workers and compare diagnoses
-- \`/stop\` — stop work on this issue
 `;
 
   return redactSecrets(md);
@@ -104,18 +118,16 @@ export function summarizeReportForComment(
 ): { body: string; truncated: boolean } {
   if (fullReport.length <= maxChars) return { body: fullReport, truncated: false };
 
-  // Keep the header sections (everything up to "## Evidence") plus the tail
-  // (Recommendation + Next action), dropping the bulky evidence in the middle.
+  // Keep the decision sections and drop the bulky evidence in the middle. The
+  // full report is still saved to disk.
   const evidenceIdx = fullReport.indexOf("## Evidence");
-  const recommendationIdx = fullReport.indexOf("## Recommendation");
   const head =
     evidenceIdx > 0 ? fullReport.slice(0, evidenceIdx) : fullReport.slice(0, maxChars / 2);
-  const tail = recommendationIdx > 0 ? fullReport.slice(recommendationIdx) : "";
 
   const note =
-    "\n> ℹ️ Evidence (commands, logs) was trimmed from this comment. " +
+    "\n> Evidence (commands, logs, screenshots, and failing tests) was trimmed from this comment. " +
     "The full report is saved alongside the run.\n\n";
 
-  const body = `${head}${note}${tail}`.slice(0, maxChars);
+  const body = `${head}${note}`.slice(0, maxChars);
   return { body, truncated: true };
 }

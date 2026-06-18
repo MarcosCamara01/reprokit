@@ -9,7 +9,7 @@ export interface CompareReportInput {
 }
 
 function cell(text: string | undefined): string {
-  return (text ?? "").replace(/\|/g, "\\|").replace(/\r?\n/g, " ").slice(0, 200) || "—";
+  return (text ?? "").replace(/\|/g, "\\|").replace(/\r?\n/g, " ").slice(0, 200) || "-";
 }
 
 function pickWinner(input: CompareReportInput): {
@@ -36,31 +36,57 @@ export function renderCompareReport(input: CompareReportInput): string {
   const row = (r: ReproWorkerResult) =>
     `| ${r.provider}${r.mocked ? " (mock)" : ""} | ${r.reproduced ? "yes" : "no"} | ${r.confidence} | ${cell(r.suspectedCause)} | ${cell(r.suspectedFiles.join(", "))} | ${cell(r.recommendation)} |`;
 
-  const md = `# Compare Report — Codex vs Claude Code
+  const nextAction =
+    winner === "tie"
+      ? "Either worker is a reasonable choice. Comment `/fix codex` or `/fix claude`."
+      : `Comment \`/fix ${winner}\` to attempt a fix with the recommended worker, or \`/fix\` to use the default.`;
 
-**Issue:** [${input.issueTitle}](${input.issueUrl})
+  const md = `# Worker Comparison Report
+
+## Issue
+
+- URL: ${input.issueUrl}
+- Title: ${input.issueTitle}
+
+## Outcome
+
+- Recommended worker: ${winner === "tie" ? "tie" : winner}
+- Reason: ${reason}
+
+## What I Tried
+
+- Prepared separate read-only checkouts for Codex and Claude.
+- Asked each worker to diagnose the issue independently.
+- Compared reproduction status, confidence, suspected cause, suspected files, and recommendation.
+
+## What I Found
 
 | Worker | Reproduced | Confidence | Suspected Cause | Files | Recommendation |
 |---|---:|---:|---|---|---|
 ${row(codex)}
 ${row(claude)}
 
-## Recommended worker
+## What Changed
 
-**${winner === "tie" ? "Tie" : winner}** — ${reason}
+_No code changes were made. Compare runs are read-only._
 
-## Differences
+## Checks Passed
+
+_No project checks are required in compare mode._
+
+## Why It Blocked
+
+_None. This comparison is advisory._
+
+## What To Do Next
+
+- ${nextAction}
+- Comment \`/stop\` to stop work on this issue.
+
+## Evidence
 
 - Reproduced: codex=${codex.reproduced ? "yes" : "no"}, claude=${claude.reproduced ? "yes" : "no"}
 - Confidence: codex=${codex.confidence}, claude=${claude.confidence}
-
-## Suggested next action
-
-${
-  winner === "tie"
-    ? "Either worker is a reasonable choice. Reply `/fix codex` or `/fix claude`."
-    : `Reply \`/fix ${winner}\` to attempt a fix with the recommended worker, or \`/fix\` to use the default.`
-}
 `;
 
   return redactSecrets(md);

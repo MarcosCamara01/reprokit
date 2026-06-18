@@ -77,6 +77,8 @@ describe("IssueWorkflow (mock workers, no git)", () => {
     await wf.runRepro({ provider: "github", id: String(REPRO_ISSUE) });
 
     expect(provider.comments.some((c) => c.includes("Reproduction Report"))).toBe(true);
+    expect(provider.comments.some((c) => c.includes("## What I Tried"))).toBe(true);
+    expect(provider.comments.some((c) => c.includes("## What To Do Next"))).toBe(true);
     expect(existsSync(runPaths(REPRO_ISSUE).report)).toBe(true);
     expect(loadRunState(REPRO_ISSUE)?.state).toBe("WAITING_FOR_APPROVAL");
   });
@@ -87,7 +89,8 @@ describe("IssueWorkflow (mock workers, no git)", () => {
 
     await wf.runRepro({ provider: "github", id: String(NOINFO_ISSUE) });
 
-    expect(provider.comments.some((c) => c.includes("need more information"))).toBe(true);
+    expect(provider.comments.some((c) => c.includes("More Information Needed"))).toBe(true);
+    expect(provider.comments.some((c) => c.includes("## Why It Blocked"))).toBe(true);
     expect(loadRunState(NOINFO_ISSUE)?.state).toBe("NEEDS_MORE_INFO");
   });
 
@@ -97,7 +100,7 @@ describe("IssueWorkflow (mock workers, no git)", () => {
 
     await wf.runFix({ provider: "github", id: String(NOINFO_FIX_ISSUE) });
 
-    expect(provider.comments.some((c) => c.includes("need more information"))).toBe(true);
+    expect(provider.comments.some((c) => c.includes("More Information Needed"))).toBe(true);
     expect(loadRunState(NOINFO_FIX_ISSUE)?.state).toBe("NEEDS_MORE_INFO");
   });
 
@@ -109,6 +112,8 @@ describe("IssueWorkflow (mock workers, no git)", () => {
 
     expect(provider.comments.some((c) => c.includes("Reproduction Report"))).toBe(true);
     expect(provider.comments.some((c) => c.includes("Fix Report"))).toBe(true);
+    expect(provider.comments.some((c) => c.includes("## What Changed"))).toBe(true);
+    expect(provider.comments.some((c) => c.includes("## Checks Passed"))).toBe(true);
     expect(existsSync(runPaths(FIX_PIPELINE_ISSUE).report)).toBe(true);
     expect(loadRunState(FIX_PIPELINE_ISSUE)?.state).toBe("FIX_FAILED");
   });
