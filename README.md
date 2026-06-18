@@ -293,6 +293,7 @@ To force a specific Claude Code model or effort level, set:
 ```env
 CLAUDE_MODEL=claude-opus-4-8
 CLAUDE_EFFORT=high
+CLAUDE_PERMISSION_MODE=acceptEdits
 ```
 
 ## GitHub Webhook Setup

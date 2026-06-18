@@ -32,12 +32,16 @@ describe("worker prompts", () => {
   });
 
   it("passes Claude Code model and effort overrides when provided", () => {
-    expect(buildClaudeArgs("diagnose this", "claude-opus-4-8", "high")).toEqual([
+    expect(
+      buildClaudeArgs("diagnose this", "claude-opus-4-8", "high", "acceptEdits"),
+    ).toEqual([
       "-p",
       "--model",
       "claude-opus-4-8",
       "--effort",
       "high",
+      "--permission-mode",
+      "acceptEdits",
       "diagnose this",
     ]);
   });
