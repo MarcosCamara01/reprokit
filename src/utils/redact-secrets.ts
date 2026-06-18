@@ -80,6 +80,5 @@ export function redactAndTruncate(input: string, maxChars: number): string {
   const redacted = redactSecrets(input ?? "");
   if (redacted.length <= maxChars) return redacted;
   const kept = redacted.slice(0, Math.max(0, maxChars));
-  const dropped = redacted.length - kept.length;
-  return `${kept}\n…[truncated ${dropped} characters]`;
+  return kept;
 }

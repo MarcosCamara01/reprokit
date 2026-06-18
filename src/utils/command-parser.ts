@@ -18,7 +18,7 @@ const WORKERS: WorkerProvider[] = ["codex", "claude"];
  * Rules:
  *  - case-insensitive
  *  - tolerant of leading/trailing whitespace and surrounding prose
- *  - the first line containing a slash-command token is considered the command
+ *  - only the first line that starts with `/` is considered the command
  *
  * Examples:
  *   "/repro"              -> { type: "repro" }
@@ -33,17 +33,15 @@ export function parseIssueCommand(raw: string): IssueCommand {
   const text = (raw ?? "").trim();
   if (!text) return { type: "unknown", raw };
 
-  // Find the first line that contains a slash command token.
+  // Find the first line that begins with a slash command.
   const commandLine =
     text
       .split(/\r?\n/)
       .map((line) => line.trim())
-      .find((line) => /(?:^|[\s.,;:!?()[\]{}"'`])\/[a-z]/i.test(line));
+      .find((line) => /^\/[a-z]/i.test(line));
 
   if (!commandLine) return { type: "unknown", raw };
-  const tokenMatch = commandLine.match(
-    /(?:^|[\s.,;:!?()[\]{}"'`])\/([a-z]+)(?:\s+([a-z]+))?/i,
-  );
+  const tokenMatch = commandLine.match(/\/([a-z]+)(?:\s+([a-z]+))?/i);
   if (!tokenMatch) return { type: "unknown", raw };
 
   const verb = tokenMatch[1]!.toLowerCase();
