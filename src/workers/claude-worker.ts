@@ -46,7 +46,7 @@ export class ClaudeWorker implements CodingWorker {
 
   async runRepro(input: ReproWorkerInput): Promise<ReproWorkerResult> {
     if (!(await this.isAvailable())) return this.mock().runRepro(input);
-    const prompt = buildReproPrompt(input.issue);
+    const prompt = buildReproPrompt(input.issue, input.contextNote);
     const res = await safeExec(this.bin, ["-p", prompt], {
       cwd: input.workdir,
       timeoutMs: input.timeoutMs,

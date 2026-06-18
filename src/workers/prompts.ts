@@ -49,13 +49,14 @@ export const FIX_RESULT_SCHEMA = `{
   "recommendation": "..."
 }`;
 
-export function buildReproPrompt(issue: IssueContext): string {
+export function buildReproPrompt(issue: IssueContext, contextNote?: string): string {
   return `You are a bug reproduction worker.
 
 You are working inside an isolated repository checkout.
 
 Issue:
 ${issueContextBlock(issue)}
+${contextNote ? `\nAdditional context:\n${contextNote}\n` : ""}
 
 Your task:
 1. Inspect the repository.

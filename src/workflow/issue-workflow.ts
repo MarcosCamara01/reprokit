@@ -322,6 +322,8 @@ export class IssueWorkflow {
       issue,
       workdir: paths.repo,
       timeoutMs: this.config.workerTimeoutMs,
+      contextNote:
+        "This is post-fix verification. Validate the current working tree exactly as it is, including uncommitted changes from the fix worker. Do not treat the committed HEAD version as authoritative if `git status` shows modified files.",
     });
 
     state = setState(

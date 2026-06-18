@@ -63,6 +63,7 @@ export interface ReproWorkerInput {
   issue: IssueContext;
   workdir: string;
   timeoutMs: number;
+  contextNote?: string;
 }
 
 export interface ReproWorkerResult {
