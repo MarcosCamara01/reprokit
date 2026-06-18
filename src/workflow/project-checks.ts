@@ -79,7 +79,14 @@ export async function runProjectChecks(
     commandsRun.push(cmd);
     logger?.info(`Running check: ${check} (${cmd})`);
 
-    const res = await safeExec(bin, args, { cwd: repoDir, timeoutMs: timeoutMsPerCheck });
+    let res;
+    try {
+      res = await safeExec(bin, args, { cwd: repoDir, timeoutMs: timeoutMsPerCheck });
+    } catch (err) {
+      logs.push(`### ${check}: ${cmd}\nInfrastructure error while starting check: ${String(err)}`);
+      return { success: false, commandsRun, failedCommand: cmd, logs };
+    }
+
     const tail = redactAndTruncate(
       `${res.stdout}\n${res.stderr}`.trim(),
       maxLogChars,

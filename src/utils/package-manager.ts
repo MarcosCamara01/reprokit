@@ -87,28 +87,34 @@ export function runScriptArgs(
   pm: PackageManager,
   scriptName: string,
 ): { bin: string; args: string[] } {
+  const bin = packageManagerBin(pm);
   switch (pm) {
     case "npm":
-      return { bin: "npm", args: ["run", scriptName] };
+      return { bin, args: ["run", scriptName] };
     case "pnpm":
-      return { bin: "pnpm", args: ["run", scriptName] };
+      return { bin, args: ["run", scriptName] };
     case "yarn":
-      return { bin: "yarn", args: [scriptName] };
+      return { bin, args: [scriptName] };
     case "bun":
-      return { bin: "bun", args: ["run", scriptName] };
+      return { bin, args: ["run", scriptName] };
   }
 }
 
 /** Build the argv to install dependencies with the detected package manager. */
 export function installArgs(pm: PackageManager): { bin: string; args: string[] } {
+  const bin = packageManagerBin(pm);
   switch (pm) {
     case "npm":
-      return { bin: "npm", args: ["install", "--no-audit", "--no-fund"] };
+      return { bin, args: ["install", "--no-audit", "--no-fund"] };
     case "pnpm":
-      return { bin: "pnpm", args: ["install"] };
+      return { bin, args: ["install"] };
     case "yarn":
-      return { bin: "yarn", args: ["install"] };
+      return { bin, args: ["install"] };
     case "bun":
-      return { bin: "bun", args: ["install"] };
+      return { bin, args: ["install"] };
   }
+}
+
+function packageManagerBin(pm: PackageManager): string {
+  return process.platform === "win32" ? `${pm}.cmd` : pm;
 }

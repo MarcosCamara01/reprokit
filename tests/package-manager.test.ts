@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   detectPackageManagerFromFiles,
   detectScriptsFromPackageJson,
+  runScriptArgs,
 } from "../src/utils/package-manager.ts";
 
 describe("detectPackageManagerFromFiles", () => {
@@ -60,5 +61,15 @@ describe("detectScriptsFromPackageJson", () => {
       scripts: { playwright: "playwright test" },
     });
     expect(scripts.playwright).toBe("playwright");
+  });
+});
+
+describe("runScriptArgs", () => {
+  it("uses the Windows command shim for package manager binaries", () => {
+    const expectedBin = process.platform === "win32" ? "npm.cmd" : "npm";
+    expect(runScriptArgs("npm", "test")).toEqual({
+      bin: expectedBin,
+      args: ["run", "test"],
+    });
   });
 });
