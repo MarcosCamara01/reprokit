@@ -272,6 +272,15 @@ If the binary is somewhere else, set:
 CODEX_BIN=/path/to/codex
 ```
 
+Reprokit records the worker model and effort in every generated report. For
+Codex, it reads `CODEX_MODEL`/`CODEX_EFFORT` first, then falls back to
+`~/.codex/config.toml`.
+
+```env
+CODEX_MODEL=gpt-5.5
+CODEX_EFFORT=xhigh
+```
+
 ### `CLAUDE_BIN`
 
 Only needed if you want real Claude worker runs.

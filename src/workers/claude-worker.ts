@@ -17,6 +17,7 @@ import { buildFixPrompt, buildReproPrompt } from "./prompts.ts";
 import { commandExists, safeExec } from "../utils/safe-exec.ts";
 import { redactSecrets } from "../utils/redact-secrets.ts";
 import { MockWorker } from "./mock-worker.ts";
+import { claudeMetadata } from "./metadata.ts";
 
 /**
  * Claude Code CLI worker.
@@ -34,8 +35,7 @@ import { MockWorker } from "./mock-worker.ts";
 export class ClaudeWorker implements CodingWorker {
   readonly provider = "claude" as const;
   private readonly bin = process.env.CLAUDE_BIN || "claude";
-  private readonly model = process.env.CLAUDE_MODEL?.trim();
-  private readonly effort = process.env.CLAUDE_EFFORT?.trim();
+  private readonly metadata = claudeMetadata();
   private readonly permissionMode = process.env.CLAUDE_PERMISSION_MODE?.trim() || "acceptEdits";
 
   async isAvailable(): Promise<boolean> {
@@ -52,7 +52,7 @@ export class ClaudeWorker implements CodingWorker {
     const prompt = buildReproPrompt(input.issue, input.contextNote);
     const res = await safeExec(
       this.bin,
-      buildClaudeArgs(prompt, this.model, this.effort, this.permissionMode),
+      buildClaudeArgs(prompt, this.metadata.model, this.metadata.effort, this.permissionMode),
       {
         cwd: input.workdir,
         timeoutMs: input.timeoutMs,
@@ -64,7 +64,7 @@ export class ClaudeWorker implements CodingWorker {
       "claude-repro.txt",
       redactSecrets(combined),
     );
-    return coerceReproResult("claude", extractJsonResult(res.stdout), rawPath);
+    return coerceReproResult("claude", extractJsonResult(res.stdout), rawPath, this.metadata);
   }
 
   async runFix(input: FixWorkerInput): Promise<FixWorkerResult> {
@@ -78,7 +78,7 @@ export class ClaudeWorker implements CodingWorker {
     const prompt = buildFixPrompt(input.issue, report);
     const res = await safeExec(
       this.bin,
-      buildClaudeArgs(prompt, this.model, this.effort, this.permissionMode),
+      buildClaudeArgs(prompt, this.metadata.model, this.metadata.effort, this.permissionMode),
       {
         cwd: input.workdir,
         timeoutMs: input.timeoutMs,
@@ -86,7 +86,7 @@ export class ClaudeWorker implements CodingWorker {
     );
     const combined = `# stdout\n${res.stdout}\n\n# stderr\n${res.stderr}`;
     writeRawOutput(dirname(input.workdir), "claude-fix.txt", redactSecrets(combined));
-    return coerceFixResult("claude", extractJsonResult(res.stdout));
+    return coerceFixResult("claude", extractJsonResult(res.stdout), this.metadata);
   }
 }
 

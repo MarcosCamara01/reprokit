@@ -34,7 +34,7 @@ export function renderCompareReport(input: CompareReportInput): string {
   const { winner, reason } = pickWinner(input);
 
   const row = (r: ReproWorkerResult) =>
-    `| ${r.provider}${r.mocked ? " (mock)" : ""} | ${r.reproduced ? "yes" : "no"} | ${r.confidence} | ${cell(r.suspectedCause)} | ${cell(r.suspectedFiles.join(", "))} | ${cell(r.recommendation)} |`;
+    `| ${r.provider}${r.mocked ? " (mock)" : ""} | ${cell(r.model)} | ${cell(r.effort)} | ${r.reproduced ? "yes" : "no"} | ${r.confidence} | ${cell(r.suspectedCause)} | ${cell(r.suspectedFiles.join(", "))} | ${cell(r.recommendation)} |`;
 
   const nextAction =
     winner === "tie"
@@ -61,8 +61,8 @@ export function renderCompareReport(input: CompareReportInput): string {
 
 ## What I Found
 
-| Worker | Reproduced | Confidence | Suspected Cause | Files | Recommendation |
-|---|---:|---:|---|---|---|
+| Worker | Model | Effort | Reproduced | Confidence | Suspected Cause | Files | Recommendation |
+|---|---|---|---:|---:|---|---|---|
 ${row(codex)}
 ${row(claude)}
 
@@ -87,6 +87,8 @@ _None. This comparison is advisory._
 
 - Reproduced: codex=${codex.reproduced ? "yes" : "no"}, claude=${claude.reproduced ? "yes" : "no"}
 - Confidence: codex=${codex.confidence}, claude=${claude.confidence}
+- Model: codex=${codex.model}, claude=${claude.model}
+- Effort: codex=${codex.effort}, claude=${claude.effort}
 `;
 
   return redactSecrets(md);

@@ -24,6 +24,8 @@ function makeIssue(): IssueContext {
 function makeResult(overrides: Partial<ReproWorkerResult> = {}): ReproWorkerResult {
   return {
     provider: "claude",
+    model: "claude-opus-4-8",
+    effort: "high",
     reproduced: true,
     confidence: 80,
     summary: "Reproduced: clearing filters does not reset layout state.",
@@ -69,6 +71,12 @@ describe("renderReproductionReport", () => {
       result: makeResult({ reproduced: false }),
     });
     expect(no).toContain("Reproduced: no");
+  });
+
+  it("includes worker model and effort", () => {
+    const md = renderReproductionReport({ issue: makeIssue(), result: makeResult() });
+    expect(md).toContain("Model used: claude-opus-4-8");
+    expect(md).toContain("Effort: high");
   });
 
   it("can render a pre-fix report title", () => {

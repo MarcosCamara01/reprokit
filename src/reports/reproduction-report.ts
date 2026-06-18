@@ -46,6 +46,8 @@ export function renderReproductionReport(input: ReproReportInput): string {
 - Reproduced: ${r.reproduced ? "yes" : "no"}
 - Confidence: ${r.confidence}/100
 - Worker used: ${worker}
+- Model used: ${r.model}
+- Effort: ${r.effort}
 - Environment: ${input.environment ?? issue.parsedBug.environment ?? "_unknown_"}
 
 ## What I Tried

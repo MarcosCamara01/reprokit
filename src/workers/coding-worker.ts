@@ -7,6 +7,7 @@ import type {
   ReproWorkerResult,
   WorkerProvider,
 } from "../types.ts";
+import type { WorkerRunMetadata } from "./metadata.ts";
 
 /**
  * A coding worker is an EXTERNAL agent (Codex CLI, Claude Code CLI, …) that runs
@@ -78,10 +79,13 @@ export function coerceReproResult(
   provider: WorkerProvider,
   json: Record<string, unknown> | null,
   rawOutputPath?: string,
+  metadata: WorkerRunMetadata = { model: "unknown", effort: "unknown" },
 ): ReproWorkerResult {
   const j = json ?? {};
   return {
     provider,
+    model: metadata.model,
+    effort: metadata.effort,
     reproduced: Boolean(j.reproduced),
     confidence: asNumber(j.confidence),
     summary: String(j.summary ?? (json ? "" : "Worker produced no structured output.")),
@@ -101,10 +105,13 @@ export function coerceReproResult(
 export function coerceFixResult(
   provider: WorkerProvider,
   json: Record<string, unknown> | null,
+  metadata: WorkerRunMetadata = { model: "unknown", effort: "unknown" },
 ): FixWorkerResult {
   const j = json ?? {};
   return {
     provider,
+    model: metadata.model,
+    effort: metadata.effort,
     fixed: Boolean(j.fixed),
     confidence: asNumber(j.confidence),
     summary: String(j.summary ?? (json ? "" : "Worker produced no structured output.")),

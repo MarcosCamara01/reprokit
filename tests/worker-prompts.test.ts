@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { buildCodexArgs } from "../src/workers/codex-worker.ts";
 import { buildClaudeArgs } from "../src/workers/claude-worker.ts";
 import { buildReproPrompt } from "../src/workers/prompts.ts";
 import type { IssueContext } from "../src/types.ts";
@@ -43,6 +44,19 @@ describe("worker prompts", () => {
       "--permission-mode",
       "acceptEdits",
       "diagnose this",
+    ]);
+  });
+
+  it("passes Codex model and effort overrides when provided", () => {
+    expect(buildCodexArgs("fix this", "workspace-write", "gpt-5.5", "xhigh")).toEqual([
+      "exec",
+      "--sandbox",
+      "workspace-write",
+      "--model",
+      "gpt-5.5",
+      "--config",
+      "model_reasoning_effort=\"xhigh\"",
+      "fix this",
     ]);
   });
 });

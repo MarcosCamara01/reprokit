@@ -8,6 +8,7 @@ import type {
   ReproWorkerResult,
   WorkerProvider,
 } from "../types.ts";
+import { mockMetadata } from "./metadata.ts";
 
 /**
  * Deterministic mock worker used when the real CLI is not installed (or when
@@ -16,6 +17,7 @@ import type {
  */
 export class MockWorker implements CodingWorker {
   readonly provider: WorkerProvider;
+  private readonly metadata = mockMetadata();
 
   constructor(provider: WorkerProvider) {
     this.provider = provider;
@@ -38,6 +40,7 @@ export class MockWorker implements CodingWorker {
     const suspected = issue.parsedBug.suspectedArea ?? "unknown";
     return {
       provider: this.provider,
+      ...this.metadata,
       reproduced: true,
       confidence: 55,
       summary:
@@ -62,6 +65,7 @@ export class MockWorker implements CodingWorker {
   async runFix(input: FixWorkerInput): Promise<FixWorkerResult> {
     return {
       provider: this.provider,
+      ...this.metadata,
       fixed: false,
       confidence: 0,
       summary:

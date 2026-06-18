@@ -68,6 +68,8 @@ export interface ReproWorkerInput {
 
 export interface ReproWorkerResult {
   provider: WorkerProvider;
+  model: string;
+  effort: string;
   reproduced: boolean;
   confidence: number;
   summary: string;
@@ -95,6 +97,8 @@ export interface FixWorkerInput {
 
 export interface FixWorkerResult {
   provider: WorkerProvider;
+  model: string;
+  effort: string;
   fixed: boolean;
   confidence: number;
   summary: string;

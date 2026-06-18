@@ -616,6 +616,8 @@ Work was intentionally stopped by a human command.
 
 - Result: ${outcome}
 - Worker used: ${fix.provider}${fix.mocked ? " _(MOCK - CLI not installed)_" : ""}
+- Model used: ${fix.model}
+- Effort: ${fix.effort}
 - Confidence: ${fix.confidence}/100
 
 ## What I Tried
@@ -710,6 +712,8 @@ ${checkLogs}
 - Actual after fix: reproduced = ${result.reproduced ? "yes" : "no"}
 - Decision: ${result.reproduced ? "do not open a PR yet" : "safe to continue to PR creation"}
 - Worker used: ${result.provider}${result.mocked ? " (MOCK - CLI not installed)" : ""}
+- Model used: ${result.model}
+- Effort: ${result.effort}
 - Confidence: ${result.confidence}/100
 
 ## What I Tried

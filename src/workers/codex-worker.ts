@@ -17,6 +17,7 @@ import { redactSecrets } from "../utils/redact-secrets.ts";
 import { MockWorker } from "./mock-worker.ts";
 import { dirname } from "node:path";
 import { readFileSync } from "node:fs";
+import { codexMetadata } from "./metadata.ts";
 
 /**
  * Codex CLI worker.
@@ -33,6 +34,7 @@ import { readFileSync } from "node:fs";
 export class CodexWorker implements CodingWorker {
   readonly provider = "codex" as const;
   private readonly bin = process.env.CODEX_BIN || "codex";
+  private readonly metadata = codexMetadata();
 
   async isAvailable(): Promise<boolean> {
     if (process.env.WORKER_MOCK === "1") return false;
@@ -48,7 +50,7 @@ export class CodexWorker implements CodingWorker {
     const prompt = buildReproPrompt(input.issue, input.contextNote);
     const res = await safeExec(
       this.bin,
-      ["exec", "--sandbox", "read-only", prompt],
+      buildCodexArgs(prompt, "read-only", this.metadata.model, this.metadata.effort),
       { cwd: input.workdir, timeoutMs: input.timeoutMs },
     );
     const combined = `# stdout\n${res.stdout}\n\n# stderr\n${res.stderr}`;
@@ -57,7 +59,7 @@ export class CodexWorker implements CodingWorker {
       "codex-repro.txt",
       redactSecrets(combined),
     );
-    return coerceReproResult("codex", extractJsonResult(res.stdout), rawPath);
+    return coerceReproResult("codex", extractJsonResult(res.stdout), rawPath, this.metadata);
   }
 
   async runFix(input: FixWorkerInput): Promise<FixWorkerResult> {
@@ -72,11 +74,24 @@ export class CodexWorker implements CodingWorker {
     // Fixes need write access to the workspace.
     const res = await safeExec(
       this.bin,
-      ["exec", "--sandbox", "workspace-write", prompt],
+      buildCodexArgs(prompt, "workspace-write", this.metadata.model, this.metadata.effort),
       { cwd: input.workdir, timeoutMs: input.timeoutMs },
     );
     const combined = `# stdout\n${res.stdout}\n\n# stderr\n${res.stderr}`;
     writeRawOutput(dirname(input.workdir), "codex-fix.txt", redactSecrets(combined));
-    return coerceFixResult("codex", extractJsonResult(res.stdout));
+    return coerceFixResult("codex", extractJsonResult(res.stdout), this.metadata);
   }
+}
+
+export function buildCodexArgs(
+  prompt: string,
+  sandbox: "read-only" | "workspace-write",
+  model: string,
+  effort: string,
+): string[] {
+  const args = ["exec", "--sandbox", sandbox];
+  if (model !== "unknown") args.push("--model", model);
+  if (effort !== "unknown") args.push("--config", `model_reasoning_effort="${effort}"`);
+  args.push(prompt);
+  return args;
 }
