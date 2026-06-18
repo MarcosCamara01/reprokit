@@ -112,7 +112,14 @@ export function safeExec(
   const commandForLog = redactSecrets(`${bin} ${args.join(" ")}`);
 
   return new Promise<SafeExecResult>((resolvePromise, reject) => {
-    const child = spawn(bin, args, {
+    const needsWindowsCommandShim =
+      process.platform === "win32" && /\.(cmd|bat)$/i.test(bin);
+    const spawnBin = needsWindowsCommandShim ? process.env.ComSpec || "cmd.exe" : bin;
+    const spawnArgs = needsWindowsCommandShim
+      ? ["/d", "/s", "/c", bin, ...args]
+      : args;
+
+    const child = spawn(spawnBin, spawnArgs, {
       cwd,
       env: sanitizedEnv(env),
       shell: false,
