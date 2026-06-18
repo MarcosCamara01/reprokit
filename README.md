@@ -469,5 +469,4 @@ npm test
 
 ## License
 
-No license has been declared yet. If this repository is published as open
-source, add a license file first so contributors know how the code can be used.
+MIT. See [LICENSE](LICENSE).
