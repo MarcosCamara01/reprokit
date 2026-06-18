@@ -388,6 +388,22 @@ Recommended low-cost shape:
 See [docs/cloud-deployment-notes.md](docs/cloud-deployment-notes.md) for the
 deployment notes and server sizing recommendations.
 
+Docker quick start:
+
+```bash
+cp .env.example .env
+# edit .env first
+docker compose up --build
+```
+
+The compose file runs the standalone webhook on `http://127.0.0.1:3001` and
+stores workflow state in a persistent `reprokit_runs` volume mounted at
+`/app/.runs`.
+
+The default image includes Node 24 and Git, but it does not install Codex CLI or
+Claude Code CLI. For real worker runs, extend the image with the worker CLI you
+want to use; for plumbing tests, set `WORKER_MOCK=1` in `.env`.
+
 Avoid normal serverless functions for the main worker process. `/fix` can clone
 repositories, run tests, run AI coding CLIs, and take several minutes.
 

@@ -125,6 +125,29 @@ MAX_LOG_CHARS=12000
 13. Use the same `GITHUB_WEBHOOK_SECRET` in GitHub and on the server.
 14. Test by creating an issue and commenting `/repro` or `/fix`.
 
+## Docker compose option
+
+The repository includes a `Dockerfile` and `docker-compose.yml` for running the
+standalone webhook in a container.
+
+```bash
+cp .env.example .env
+# edit .env first
+docker compose up --build
+```
+
+The compose service:
+
+- builds the local image from `Dockerfile`
+- reads runtime configuration from `.env`
+- exposes `3001:3001`
+- stores `.runs/` in the `reprokit_runs` named volume
+- includes a health check against `/health`
+
+The base image includes Node 24 and Git. Codex CLI and Claude Code CLI are not
+installed in the default image; install them in a custom image or use
+`WORKER_MOCK=1` for plumbing tests.
+
 ## Example systemd service
 
 ```ini
@@ -156,8 +179,5 @@ reprokit.example.com {
 
 Once the VPS deployment works, consider adding:
 
-- `Dockerfile`
-- `docker-compose.yml`
 - persistent volume for `.runs/`
 - documented deploy checklist in `README.md`
-
