@@ -59,12 +59,14 @@ describe("parseWebhookEvent", () => {
   });
 
   it("ignores generated reproduction reports even when they mention commands", () => {
-    expect(
-      parseWebhookEvent(
-        "issue_comment",
-        issueCommentPayload("# Reproduction Report\n\nOriginal issue body:\n/repro"),
-      ),
-    ).toBeNull();
+    for (const title of ["# Reproduction Report", "# Pre-Fix Reproduction Report"]) {
+      expect(
+        parseWebhookEvent(
+          "issue_comment",
+          issueCommentPayload(`${title}\n\nOriginal issue body:\n/repro`),
+        ),
+      ).toBeNull();
+    }
   });
 
   it("ignores generated missing-info prompts even when they mention commands", () => {

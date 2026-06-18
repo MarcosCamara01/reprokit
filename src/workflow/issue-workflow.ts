@@ -223,6 +223,7 @@ export class IssueWorkflow {
       issue,
       result: preFixRepro,
       environment: issue.parsedBug.environment,
+      title: "Pre-Fix Reproduction Report",
     });
     writeFileSync(paths.report, preFixReport);
     state = { ...state, reportPath: paths.report, worker: worker.provider };

@@ -71,6 +71,16 @@ describe("renderReproductionReport", () => {
     expect(no).toContain("Reproduced: no");
   });
 
+  it("can render a pre-fix report title", () => {
+    const md = renderReproductionReport({
+      issue: makeIssue(),
+      result: makeResult(),
+      title: "Pre-Fix Reproduction Report",
+    });
+
+    expect(md).toContain("# Pre-Fix Reproduction Report");
+  });
+
   it("marks mocked worker output", () => {
     const md = renderReproductionReport({ issue: makeIssue(), result: makeResult({ mocked: true }) });
     expect(md).toContain("MOCK");

@@ -5,6 +5,7 @@ export interface ReproReportInput {
   issue: IssueContext;
   result: ReproWorkerResult;
   environment?: string;
+  title?: string;
 }
 
 function bullets(items: string[], empty = "_None._"): string {
@@ -25,12 +26,13 @@ function codeBlock(items: string[]): string {
 export function renderReproductionReport(input: ReproReportInput): string {
   const { issue, result } = input;
   const r = result;
+  const title = input.title ?? "Reproduction Report";
   const worker = `${r.provider}${r.mocked ? " (MOCK - CLI not installed)" : ""}`;
   const blocker = r.reproduced
     ? "_None. The bug was reproduced and a fix can be attempted after review._"
     : "The bug was not reproduced. A fix should wait for clearer evidence, logs, or a failing test.";
 
-  const md = `# Reproduction Report
+  const md = `# ${title}
 
 ## Issue
 
