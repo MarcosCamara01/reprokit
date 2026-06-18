@@ -86,7 +86,7 @@ export class IssueWorkflow {
     this.log.info(`Dispatching command`, { id: ref.id, command });
     switch (command.type) {
       case "repro":
-        await this.runRepro(ref);
+        await this.runRepro(ref, command.provider);
         return;
       case "fix":
         await this.runFix(ref, command.provider);
