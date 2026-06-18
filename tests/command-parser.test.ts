@@ -35,6 +35,13 @@ describe("parseIssueCommand", () => {
     expect(parseIssueCommand("hey team, please /repro this when you can")).toEqual({
       type: "repro",
     });
+    expect(parseIssueCommand("ok, please run `/repro` when ready")).toEqual({
+      type: "repro",
+    });
+    expect(parseIssueCommand("ship it with /fix codex please")).toEqual({
+      type: "fix",
+      provider: "codex",
+    });
     expect(parseIssueCommand("thanks!\n\n/fix claude\n\n-- me")).toEqual({
       type: "fix",
       provider: "claude",
