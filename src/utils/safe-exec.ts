@@ -156,6 +156,8 @@ export function safeExec(
     if (input !== undefined) {
       child.stdin?.write(input);
       child.stdin?.end();
+    } else {
+      child.stdin?.end();
     }
   });
 }

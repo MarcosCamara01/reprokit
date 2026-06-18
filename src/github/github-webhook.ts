@@ -5,6 +5,10 @@ import { createLogger } from "../utils/logger.ts";
 import type { IssueRef } from "../types.ts";
 
 const log = createLogger("webhook");
+const GENERATED_COMMENT_PREFIXES = [
+  "# Reproduction Report",
+  "# Worker Comparison",
+];
 
 /**
  * Verify a GitHub webhook signature (X-Hub-Signature-256: sha256=...).
@@ -45,7 +49,9 @@ export function parseWebhookEvent(
     if (payload.action !== "created") return null;
     // Ignore comments on pull requests (issue_comment fires for both).
     if (payload.issue?.pull_request) return null;
-    const command = parseIssueCommand(payload.comment?.body ?? "");
+    const body = payload.comment?.body ?? "";
+    if (isGeneratedAgentComment(body)) return null;
+    const command = parseIssueCommand(body);
     if (command.type === "unknown") return null;
     return { ref: refFrom(payload), command };
   }
@@ -58,6 +64,11 @@ export function parseWebhookEvent(
   }
 
   return null;
+}
+
+function isGeneratedAgentComment(body: string): boolean {
+  const trimmed = body.trimStart();
+  return GENERATED_COMMENT_PREFIXES.some((prefix) => trimmed.startsWith(prefix));
 }
 
 function refFrom(payload: any): IssueRef {
