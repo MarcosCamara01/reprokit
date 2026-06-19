@@ -23,6 +23,27 @@ export function issueContextBlock(issue: IssueContext): string {
     .join("\n");
 }
 
+/**
+ * Shared "hard stop" instruction. A worker that hits a decision only a human
+ * should make must stop instead of guessing and describe what it needs.
+ */
+export const HARD_STOP_RULE = `Hard stops:
+If you reach a point where continuing would require a decision a human must make,
+do NOT guess and do NOT proceed. Stop and report it. This includes:
+- Ambiguous or contradictory requirements you cannot resolve from the repo.
+- Adding a new dependency, or changing auth, payments, billing, security, or permissions.
+- Deleting data, or changing a public API or external contract.
+- Work that falls outside the scope of this issue.
+- The task being technically infeasible as described.
+When this happens, set "hardStop" to an object (otherwise leave it null) and set
+"fixed"/"reproduced" to false.`;
+
+const HARD_STOP_SCHEMA = `  "hardStop": null | {
+    "category": "ambiguous-requirements | new-dependency | auth | payments | security | data-loss | public-api | external-contract | out-of-scope | infeasible | other",
+    "reason": "what you ran into",
+    "needs": "the exact decision or input you need from a human to continue"
+  }`;
+
 export const REPRO_RESULT_SCHEMA = `{
   "reproduced": true | false,
   "confidence": 0-100,
@@ -34,7 +55,8 @@ export const REPRO_RESULT_SCHEMA = `{
   "suspectedCause": "...",
   "createdFiles": ["..."],
   "modifiedFiles": ["..."],
-  "recommendation": "..."
+  "recommendation": "...",
+${HARD_STOP_SCHEMA}
 }`;
 
 export const FIX_RESULT_SCHEMA = `{
@@ -46,8 +68,32 @@ export const FIX_RESULT_SCHEMA = `{
   "commandsRun": ["..."],
   "relevantLogs": ["..."],
   "risks": ["..."],
-  "recommendation": "..."
+  "recommendation": "...",
+${HARD_STOP_SCHEMA}
 }`;
+
+/**
+ * SDD bug protocol, distilled from sddguard's /bugfix command and execution
+ * principles (.sdd/workflow.md). reprokit applies sddguard to GitHub bug fixes by
+ * baking the protocol into the worker prompts: the workers run one-shot and return
+ * JSON, so the protocol travels in the prompt rather than as installed slash
+ * commands. Stages map onto the pipeline — Reproduce/Diagnose = runRepro,
+ * Fix = runFix, Validate = project checks + post-fix reproduction.
+ */
+export const SDD_PRINCIPLES = `Execution principles (SDD):
+- Surface assumptions — state what you assume; when unclear, prefer a hard stop over a silent guess.
+- Minimum code — only what the bug requires; no extra abstractions or "while I'm here" cleanups.
+- Surgical changes — touch only the lines the root cause needs; never reformat, rename, or refactor adjacent code. If you spot an unrelated problem, note it, don't fix it.
+- Verify before done — "fixed" means a test (or deterministic repro) that captured the bug now passes and the suite stays green.`;
+
+export const REPRO_PROTOCOL = `SDD stages for this step — Reproduce -> Diagnose (do not skip; do not fix yet):
+- Reproduce — if the repo has a test suite, prefer a minimal failing test that captures the bug; otherwise establish a deterministic minimal repro (exact steps, inputs, observed vs expected). If you cannot reproduce it at all, set "reproduced": false and stop — do not guess.
+- Diagnose — find the ROOT CAUSE, not the symptom, and state it in one sentence in "suspectedCause". If you cannot, say so instead of inventing one.`;
+
+export const FIX_PROTOCOL = `SDD stages for this step — Fix -> Validate:
+- Fix — the minimum change that addresses the root cause from the reproduction report; restate that root cause in "summary".
+- Scope guard — if a correct fix would exceed roughly one file or ~50 lines, or needs a broader redesign, do NOT sprawl: set "hardStop" with category "out-of-scope" so a human can scope it.
+- Validate — make the change so a test capturing the bug passes and the full suite stays green; list tests in "testsAddedOrUpdated".`;
 
 export function buildReproPrompt(issue: IssueContext, contextNote?: string): string {
   return `You are a bug reproduction worker.
@@ -69,6 +115,12 @@ Your task:
 8. Do not push.
 9. Do not touch secrets or production environment files (.env, .env.*, key files).
 10. Produce a structured report.
+
+${SDD_PRINCIPLES}
+
+${REPRO_PROTOCOL}
+
+${HARD_STOP_RULE}
 
 Return ONLY a single JSON object as the last thing you print, in this exact shape:
 
@@ -96,6 +148,12 @@ Rules:
 7. Do not run destructive commands.
 8. Do not commit unless explicitly instructed by the orchestrator.
 9. Explain every file changed.
+
+${SDD_PRINCIPLES}
+
+${FIX_PROTOCOL}
+
+${HARD_STOP_RULE}
 
 Return ONLY a single JSON object as the last thing you print, in this exact shape:
 

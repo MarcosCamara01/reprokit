@@ -3,11 +3,27 @@ import { join } from "node:path";
 import type {
   FixWorkerInput,
   FixWorkerResult,
+  HardStop,
+  HardStopCategory,
   ReproWorkerInput,
   ReproWorkerResult,
   WorkerProvider,
 } from "../types.ts";
 import type { WorkerRunMetadata } from "./metadata.ts";
+
+const HARD_STOP_CATEGORIES: readonly HardStopCategory[] = [
+  "ambiguous-requirements",
+  "new-dependency",
+  "auth",
+  "payments",
+  "security",
+  "data-loss",
+  "public-api",
+  "external-contract",
+  "out-of-scope",
+  "infeasible",
+  "other",
+];
 
 /**
  * A coding worker is an EXTERNAL agent (Codex CLI, Claude Code CLI, …) that runs
@@ -74,6 +90,26 @@ function asNumber(v: unknown, fallback = 0): number {
   return Number.isFinite(n) ? n : fallback;
 }
 
+/**
+ * Coerce a worker's `hardStop` blob into a typed HardStop, or null. A hard stop
+ * only counts when the worker actually said why it stopped; an empty/garbage
+ * object is treated as "no hard stop" so it can't silently park a run.
+ */
+export function coerceHardStop(v: unknown): HardStop | null {
+  if (!v || typeof v !== "object") return null;
+  const o = v as Record<string, unknown>;
+  const reason = String(o.reason ?? "").trim();
+  const needs = String(o.needs ?? "").trim();
+  if (!reason && !needs) return null;
+  const rawCategory = String(o.category ?? "").trim() as HardStopCategory;
+  const category = HARD_STOP_CATEGORIES.includes(rawCategory) ? rawCategory : "other";
+  return {
+    category,
+    reason: reason || "The worker stopped for a human decision but gave no reason.",
+    needs: needs || "Review the issue and decide how to proceed, then re-run the command.",
+  };
+}
+
 /** Coerce a parsed JSON blob into a typed ReproWorkerResult. */
 export function coerceReproResult(
   provider: WorkerProvider,
@@ -98,6 +134,7 @@ export function coerceReproResult(
     modifiedFiles: asStringArray(j.modifiedFiles),
     recommendation: String(j.recommendation ?? ""),
     rawOutputPath,
+    hardStop: coerceHardStop(j.hardStop),
   };
 }
 
@@ -121,6 +158,7 @@ export function coerceFixResult(
     relevantLogs: asStringArray(j.relevantLogs),
     risks: asStringArray(j.risks),
     recommendation: String(j.recommendation ?? ""),
+    hardStop: coerceHardStop(j.hardStop),
   };
 }
 

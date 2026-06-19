@@ -1,6 +1,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import type {
   FixWorkerResult,
+  HardStop,
   IssueContext,
   IssueRef,
   ProjectChecksResult,
@@ -148,6 +149,10 @@ export class IssueWorkflow {
       timeoutMs: this.config.workerTimeoutMs,
     });
 
+    if (await this.handleHardStop(ref, key, state, result.hardStop, worker.provider, "reproduction")) {
+      return;
+    }
+
     state = this.transition(
       key,
       state,
@@ -212,6 +217,10 @@ export class IssueWorkflow {
       timeoutMs: this.config.workerTimeoutMs,
     });
 
+    if (await this.handleHardStop(ref, key, state, preFixRepro.hardStop, worker.provider, "pre-fix reproduction")) {
+      return;
+    }
+
     state = this.transition(
       key,
       state,
@@ -260,6 +269,10 @@ export class IssueWorkflow {
       branchName,
       timeoutMs: this.config.workerTimeoutMs,
     });
+
+    if (await this.handleHardStop(ref, key, state, fix.hardStop, workerProvider, "fix")) {
+      return;
+    }
 
     if (!fix.fixed) {
       state = setState(key, state, "FIX_FAILED", "worker did not produce a fix", now());
@@ -543,6 +556,64 @@ Work was intentionally stopped by a human command.
   private async postReportComment(issueId: string, report: string): Promise<void> {
     const { body } = summarizeReportForComment(report, COMMENT_MAX);
     await this.provider.postComment(issueId, body);
+  }
+
+  /**
+   * If the worker declared a hard stop, park the run in NEEDS_HUMAN_DECISION,
+   * post the request for a human decision on the issue, and return true so the
+   * caller stops the pipeline. Returns false when there is no hard stop.
+   */
+  private async handleHardStop(
+    ref: IssueRef,
+    key: string | number,
+    state: RunStateFile,
+    hardStop: HardStop | null | undefined,
+    provider: WorkerProvider,
+    phase: string,
+  ): Promise<boolean> {
+    if (!hardStop) return false;
+    setState(key, state, "NEEDS_HUMAN_DECISION", `hard stop (${phase}): ${hardStop.category}`, now());
+    await this.provider.postComment(ref.id, this.hardStopComment(hardStop, provider, phase));
+    return true;
+  }
+
+  private hardStopComment(hardStop: HardStop, provider: string, phase: string): string {
+    return `# Human Decision Needed
+
+## Outcome
+
+- Result: the ${provider} worker hit a hard stop during ${phase} and is waiting for a human decision.
+- PR created: no
+
+## What I Tried
+
+- Ran the ${provider} worker under the autonomous workflow.
+- Continued until it reached a decision that should not be made automatically.
+
+## What I Found
+
+- Hard-stop category: \`${hardStop.category}\`
+- ${hardStop.reason}
+
+## What Changed
+
+_No changes were pushed. The worker stopped before making this decision on its own._
+
+## Checks Passed
+
+_No project checks were run after the hard stop._
+
+## Why It Blocked
+
+${hardStop.reason}
+
+A \`${hardStop.category}\` decision is outside the autonomous policy and needs a human to make the call.
+
+## What To Do Next
+
+${hardStop.needs}
+
+After you decide, reply on this issue and comment \`/fix\` (or \`/fix codex\` / \`/fix claude\`) to continue.`;
   }
 
   private fixReportPath(reportPath: string): string {
