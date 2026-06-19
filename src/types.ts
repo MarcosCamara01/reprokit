@@ -58,6 +58,36 @@ export interface IssueRef {
 
 // ── Worker IO ────────────────────────────────────────────────────────────────
 
+/**
+ * Categories of decision that an autonomous worker must NOT make on its own.
+ * When a worker hits one of these it should stop and hand back to a human
+ * instead of guessing. Mirrors the SDD "hard stop" / human-approval policy.
+ */
+export type HardStopCategory =
+  | "ambiguous-requirements"
+  | "new-dependency"
+  | "auth"
+  | "payments"
+  | "security"
+  | "data-loss"
+  | "public-api"
+  | "external-contract"
+  | "out-of-scope"
+  | "infeasible"
+  | "other";
+
+/**
+ * A worker's signal that it deliberately stopped and needs a human decision,
+ * as opposed to simply failing. The orchestrator surfaces this on the issue.
+ */
+export interface HardStop {
+  category: HardStopCategory;
+  /** Why the worker stopped (what it ran into). */
+  reason: string;
+  /** The concrete decision or input the worker needs from a human to continue. */
+  needs: string;
+}
+
 export interface ReproWorkerInput {
   provider: WorkerProvider;
   issue: IssueContext;
@@ -84,6 +114,8 @@ export interface ReproWorkerResult {
   rawOutputPath?: string;
   /** True when this result came from the built-in mock (CLI not available). */
   mocked?: boolean;
+  /** Set when the worker deliberately stopped for a human decision. */
+  hardStop?: HardStop | null;
 }
 
 export interface FixWorkerInput {
@@ -109,6 +141,8 @@ export interface FixWorkerResult {
   risks: string[];
   recommendation: string;
   mocked?: boolean;
+  /** Set when the worker deliberately stopped for a human decision. */
+  hardStop?: HardStop | null;
 }
 
 export interface ProjectChecksResult {

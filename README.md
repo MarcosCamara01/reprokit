@@ -183,6 +183,7 @@ Expected response:
 | `RUN_BROWSER_CHECKS` | No | Set to `1` to include detected `e2e` or `playwright` scripts after normal checks. |
 | `WORKER_INSTALL` | No | Set to `1` if the workflow should run dependency install in the isolated checkout. |
 | `WORKER_MOCK` | No | Set to `1` to force mock workers for demos and plumbing tests. |
+| `WORKER_MOCK_HARDSTOP` | No | With `WORKER_MOCK=1`, makes the mock worker hard-stop so you can demo the "human decision needed" flow. Use `repro`, `fix`, or `both`. |
 
 ### GitHub App variables
 

@@ -4,6 +4,7 @@ import type {
 import type {
   FixWorkerInput,
   FixWorkerResult,
+  HardStop,
   ReproWorkerInput,
   ReproWorkerResult,
   WorkerProvider,
@@ -35,9 +36,45 @@ export class MockWorker implements CodingWorker {
     return `Install the ${this.provider} CLI (see README) and re-run /fix to attempt a real fix`;
   }
 
+  /**
+   * `WORKER_MOCK_HARDSTOP` opts the mock into a deterministic hard stop so the
+   * full "needs human decision" path can be exercised end to end. Accepts
+   * `repro`, `fix`, or `1`/`both` (both phases).
+   */
+  private hardStopFor(phase: "repro" | "fix"): HardStop | null {
+    const mode = (process.env.WORKER_MOCK_HARDSTOP || "").trim().toLowerCase();
+    if (!mode) return null;
+    const active = mode === phase || mode === "1" || mode === "true" || mode === "both";
+    if (!active) return null;
+    return {
+      category: "ambiguous-requirements",
+      reason: `[MOCK ${this.provider}] Simulated hard stop during ${phase}: the request is ambiguous.`,
+      needs: "(mock) Clarify the intended behavior, then re-run the command.",
+    };
+  }
+
   async runRepro(input: ReproWorkerInput): Promise<ReproWorkerResult> {
     const { issue } = input;
     const suspected = issue.parsedBug.suspectedArea ?? "unknown";
+    const hardStop = this.hardStopFor("repro");
+    if (hardStop) {
+      return {
+        provider: this.provider,
+        ...this.metadata,
+        reproduced: false,
+        confidence: 0,
+        summary: hardStop.reason,
+        reproductionSteps: [],
+        commandsRun: [],
+        relevantLogs: [],
+        suspectedFiles: [],
+        createdFiles: [],
+        modifiedFiles: [],
+        recommendation: hardStop.needs,
+        mocked: true,
+        hardStop,
+      };
+    }
     return {
       provider: this.provider,
       ...this.metadata,
@@ -62,7 +99,25 @@ export class MockWorker implements CodingWorker {
     };
   }
 
-  async runFix(input: FixWorkerInput): Promise<FixWorkerResult> {
+  async runFix(_input: FixWorkerInput): Promise<FixWorkerResult> {
+    const hardStop = this.hardStopFor("fix");
+    if (hardStop) {
+      return {
+        provider: this.provider,
+        ...this.metadata,
+        fixed: false,
+        confidence: 0,
+        summary: hardStop.reason,
+        filesChanged: [],
+        testsAddedOrUpdated: [],
+        commandsRun: [],
+        relevantLogs: [],
+        risks: [],
+        recommendation: hardStop.needs,
+        mocked: true,
+        hardStop,
+      };
+    }
     return {
       provider: this.provider,
       ...this.metadata,

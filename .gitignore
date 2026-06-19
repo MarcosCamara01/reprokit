@@ -6,6 +6,9 @@ node_modules/
 # Per-issue agent run workspaces (clones, logs, reports). Never commit these.
 .runs/
 
+# Local Claude Code overrides (personal full-access mode — do not commit)
+.claude/settings.local.json
+
 # Build / tooling
 dist/
 .output/

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { buildCodexArgs } from "../src/workers/codex-worker.ts";
 import { buildClaudeArgs } from "../src/workers/claude-worker.ts";
-import { buildReproPrompt } from "../src/workers/prompts.ts";
+import { buildFixPrompt, buildReproPrompt } from "../src/workers/prompts.ts";
 import type { IssueContext } from "../src/types.ts";
 
 const issue: IssueContext = {
@@ -30,6 +30,23 @@ describe("worker prompts", () => {
 
     expect(prompt).toContain("Additional context:");
     expect(prompt).toContain("Validate the current working tree");
+  });
+
+  it("embeds the SDD reproduce/diagnose protocol in the repro prompt", () => {
+    const prompt = buildReproPrompt(issue);
+    expect(prompt).toContain("Execution principles (SDD)");
+    expect(prompt).toContain("Reproduce -> Diagnose");
+    expect(prompt).toContain("ROOT CAUSE");
+    // Hard-stop channel must remain wired.
+    expect(prompt).toContain('"hardStop"');
+  });
+
+  it("embeds the SDD fix/validate protocol and scope guard in the fix prompt", () => {
+    const prompt = buildFixPrompt(issue, "Pre-fix reproduction report.");
+    expect(prompt).toContain("Fix -> Validate");
+    expect(prompt).toContain("Scope guard");
+    expect(prompt).toContain("out-of-scope");
+    expect(prompt).toContain("Pre-fix reproduction report.");
   });
 
   it("passes Claude Code model and effort overrides when provided", () => {
