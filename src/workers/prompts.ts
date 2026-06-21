@@ -73,8 +73,8 @@ ${HARD_STOP_SCHEMA}
 }`;
 
 /**
- * SDD bug protocol, distilled from sddguard's /bugfix command and execution
- * principles (.sdd/workflow.md). reprokit applies sddguard to GitHub bug fixes by
+ * SDD bug protocol, distilled from the sddguard /bugfix command and its
+ * execution principles. reprokit applies sddguard to GitHub bug fixes by
  * baking the protocol into the worker prompts: the workers run one-shot and return
  * JSON, so the protocol travels in the prompt rather than as installed slash
  * commands. Stages map onto the pipeline — Reproduce/Diagnose = runRepro,

@@ -116,7 +116,7 @@ stable domain.
 ## Installation
 
 ```bash
-git clone https://github.com/YOUR_OWNER/reprokit.git
+git clone https://github.com/MarcosCamara01/reprokit.git
 cd reprokit
 npm install
 cp .env.example .env

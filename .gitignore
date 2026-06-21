@@ -9,6 +9,15 @@ node_modules/
 # Local Claude Code overrides (personal full-access mode — do not commit)
 .claude/settings.local.json
 
+# SDD development scaffolding — kept local, not published. The agent's own
+# bug-fix SDD protocol lives inlined in src/workers/prompts.ts and is unaffected.
+.sdd/
+.agents/
+.claude/commands/
+specs/
+CLAUDE.md
+AGENTS.md
+
 # Build / tooling
 dist/
 .output/
