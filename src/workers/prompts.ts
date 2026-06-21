@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join, resolve } from "node:path";
 import type { IssueContext } from "../types.ts";
 
 /** Compact, secret-free serialization of the issue for a worker prompt. */
@@ -95,6 +97,46 @@ export const FIX_PROTOCOL = `SDD stages for this step — Fix -> Validate:
 - Scope guard — if a correct fix would exceed roughly one file or ~50 lines, or needs a broader redesign, do NOT sprawl: set "hardStop" with category "out-of-scope" so a human can scope it.
 - Validate — make the change so a test capturing the bug passes and the full suite stays green; list tests in "testsAddedOrUpdated".`;
 
+export const WORKER_SKILL_FILES = [
+  "bug-triage.md",
+  "reproduction-report.md",
+  "karpathy-guidelines.md",
+  "root-cause-analysis.md",
+  "test-first-bugfix.md",
+  "worker-hardstop-policy.md",
+  "fix-policy.md",
+  "post-fix-verification.md",
+  "react-debugging.md",
+  "nextjs-debugging.md",
+  "typescript-debugging.md",
+  "browser-playwright-debugging.md",
+  "api-network-debugging.md",
+  "css-layout-debugging.md",
+  "dependency-tooling-debugging.md",
+] as const;
+
+function stripFrontmatter(markdown: string): string {
+  if (!markdown.startsWith("---\n")) return markdown.trim();
+  const end = markdown.indexOf("\n---\n", 4);
+  if (end === -1) return markdown.trim();
+  return markdown.slice(end + "\n---\n".length).trim();
+}
+
+export function workerSkillsBlock(): string {
+  const skillsDir = resolve(process.cwd(), "agent", "skills");
+  const loaded = WORKER_SKILL_FILES.map((file) => {
+    const markdown = readFileSync(join(skillsDir, file), "utf8");
+    return `## ${file}\n\n${stripFrontmatter(markdown)}`;
+  });
+
+  return `Worker skills:
+Use the following project-authored skills as operating instructions while debugging.
+Apply the relevant ones based on the issue and repository. If a skill conflicts
+with the hard-stop rules or JSON schema below, the hard-stop rules and schema win.
+
+${loaded.join("\n\n---\n\n")}`;
+}
+
 export function buildReproPrompt(issue: IssueContext, contextNote?: string): string {
   return `You are a bug reproduction worker.
 
@@ -121,6 +163,8 @@ ${SDD_PRINCIPLES}
 ${REPRO_PROTOCOL}
 
 ${HARD_STOP_RULE}
+
+${workerSkillsBlock()}
 
 Return ONLY a single JSON object as the last thing you print, in this exact shape:
 
@@ -154,6 +198,8 @@ ${SDD_PRINCIPLES}
 ${FIX_PROTOCOL}
 
 ${HARD_STOP_RULE}
+
+${workerSkillsBlock()}
 
 Return ONLY a single JSON object as the last thing you print, in this exact shape:
 

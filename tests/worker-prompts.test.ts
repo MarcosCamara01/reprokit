@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { buildCodexArgs } from "../src/workers/codex-worker.ts";
 import { buildClaudeArgs } from "../src/workers/claude-worker.ts";
-import { buildFixPrompt, buildReproPrompt } from "../src/workers/prompts.ts";
+import {
+  buildFixPrompt,
+  buildReproPrompt,
+  WORKER_SKILL_FILES,
+  workerSkillsBlock,
+} from "../src/workers/prompts.ts";
 import type { IssueContext } from "../src/types.ts";
 
 const issue: IssueContext = {
@@ -37,6 +42,9 @@ describe("worker prompts", () => {
     expect(prompt).toContain("Execution principles (SDD)");
     expect(prompt).toContain("Reproduce -> Diagnose");
     expect(prompt).toContain("ROOT CAUSE");
+    expect(prompt).toContain("Worker skills:");
+    expect(prompt).toContain("## root-cause-analysis.md");
+    expect(prompt).toContain("## browser-playwright-debugging.md");
     // Hard-stop channel must remain wired.
     expect(prompt).toContain('"hardStop"');
   });
@@ -47,6 +55,16 @@ describe("worker prompts", () => {
     expect(prompt).toContain("Scope guard");
     expect(prompt).toContain("out-of-scope");
     expect(prompt).toContain("Pre-fix reproduction report.");
+    expect(prompt).toContain("## fix-policy.md");
+    expect(prompt).toContain("## post-fix-verification.md");
+  });
+
+  it("loads every authored worker skill without frontmatter", () => {
+    const block = workerSkillsBlock();
+    for (const file of WORKER_SKILL_FILES) {
+      expect(block).toContain(`## ${file}`);
+    }
+    expect(block).not.toContain("description: >-");
   });
 
   it("passes Claude Code model and effort overrides when provided", () => {
