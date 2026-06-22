@@ -49,6 +49,25 @@ describe("worker prompts", () => {
     expect(prompt).toContain("Pre-fix reproduction report.");
   });
 
+  it("appends agent-browser guidance to repro and fix prompts only when browser is enabled", () => {
+    const reproOn = buildReproPrompt(issue, undefined, { browser: true });
+    expect(reproOn).toContain("agent-browser");
+    expect(reproOn).toContain('"screenshots"');
+
+    const fixOn = buildFixPrompt(issue, "Pre-fix reproduction report.", { browser: true });
+    expect(fixOn).toContain("agent-browser");
+  });
+
+  it("leaves prompts byte-identical when browser is off (no caps == browser:false)", () => {
+    const reproBase = buildReproPrompt(issue);
+    expect(buildReproPrompt(issue, undefined, { browser: false })).toBe(reproBase);
+    expect(reproBase).not.toContain("agent-browser");
+
+    const fixBase = buildFixPrompt(issue, "Pre-fix reproduction report.");
+    expect(buildFixPrompt(issue, "Pre-fix reproduction report.", { browser: false })).toBe(fixBase);
+    expect(fixBase).not.toContain("agent-browser");
+  });
+
   it("passes Claude Code model and effort overrides when provided", () => {
     expect(
       buildClaudeArgs("diagnose this", "claude-opus-4-8", "high", "acceptEdits"),

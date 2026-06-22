@@ -132,6 +132,7 @@ export function coerceReproResult(
     suspectedCause: j.suspectedCause ? String(j.suspectedCause) : undefined,
     createdFiles: asStringArray(j.createdFiles),
     modifiedFiles: asStringArray(j.modifiedFiles),
+    screenshots: asStringArray(j.screenshots),
     recommendation: String(j.recommendation ?? ""),
     rawOutputPath,
     hardStop: coerceHardStop(j.hardStop),

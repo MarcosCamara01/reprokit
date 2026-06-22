@@ -101,6 +101,22 @@ describe("renderReproductionReport", () => {
     expect(md).toContain("`/stop`");
   });
 
+  it("lists captured screenshots under Evidence when present", () => {
+    const md = renderReproductionReport({
+      issue: makeIssue(),
+      result: makeResult({ screenshots: ["./.reprokit-artifacts/broken.png"] }),
+    });
+    expect(md).toContain("### Screenshots");
+    expect(md).toContain("./.reprokit-artifacts/broken.png");
+    expect(md).not.toContain("_None captured in this run._");
+  });
+
+  it("keeps the 'None captured' placeholder when no screenshots were taken", () => {
+    const md = renderReproductionReport({ issue: makeIssue(), result: makeResult() });
+    expect(md).toContain("### Screenshots");
+    expect(md).toContain("_None captured in this run._");
+  });
+
   it("redacts secrets that leak into worker fields", () => {
     // Fake token assembled at runtime so no token-shaped literal sits in source.
     const fakePat = "ghp_" + "a".repeat(36);

@@ -21,6 +21,7 @@ import {
   type RunStateFile,
 } from "./run-store.ts";
 import { prepareWorkdir } from "./prepare-workdir.ts";
+import { browserFieldsFor } from "./browser-env.ts";
 import { runProjectChecks } from "./project-checks.ts";
 import { defaultWorkerProvider, getWorker } from "../workers/index.ts";
 import { renderReproductionReport, summarizeReportForComment } from "../reports/reproduction-report.ts";
@@ -147,6 +148,7 @@ export class IssueWorkflow {
       issue,
       workdir: paths.repo,
       timeoutMs: this.config.workerTimeoutMs,
+      ...browserFieldsFor(issue, key),
     });
 
     if (await this.handleHardStop(ref, key, state, result.hardStop, worker.provider, "reproduction")) {
@@ -215,6 +217,7 @@ export class IssueWorkflow {
       issue,
       workdir: paths.repo,
       timeoutMs: this.config.workerTimeoutMs,
+      ...browserFieldsFor(issue, key),
     });
 
     if (await this.handleHardStop(ref, key, state, preFixRepro.hardStop, worker.provider, "pre-fix reproduction")) {
@@ -338,6 +341,7 @@ export class IssueWorkflow {
       timeoutMs: this.config.workerTimeoutMs,
       contextNote:
         "This is post-fix verification. Validate the current working tree exactly as it is, including uncommitted changes from the fix worker. Do not treat the committed HEAD version as authoritative if `git status` shows modified files.",
+      ...browserFieldsFor(issue, key),
     });
 
     state = setState(

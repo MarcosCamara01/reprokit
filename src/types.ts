@@ -94,6 +94,10 @@ export interface ReproWorkerInput {
   workdir: string;
   timeoutMs: number;
   contextNote?: string;
+  /** When true, the worker prompt grants the headless-browser (agent-browser) capability. */
+  browser?: boolean;
+  /** Extra environment for the worker process (e.g. constrained AGENT_BROWSER_* vars). */
+  env?: Record<string, string>;
 }
 
 export interface ReproWorkerResult {
@@ -110,6 +114,8 @@ export interface ReproWorkerResult {
   suspectedCause?: string;
   createdFiles?: string[];
   modifiedFiles?: string[];
+  /** Screenshot paths the worker captured via agent-browser, if any. */
+  screenshots?: string[];
   recommendation: string;
   rawOutputPath?: string;
   /** True when this result came from the built-in mock (CLI not available). */

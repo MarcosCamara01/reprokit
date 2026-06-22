@@ -49,13 +49,14 @@ export class ClaudeWorker implements CodingWorker {
 
   async runRepro(input: ReproWorkerInput): Promise<ReproWorkerResult> {
     if (!(await this.isAvailable())) return this.mock().runRepro(input);
-    const prompt = buildReproPrompt(input.issue, input.contextNote);
+    const prompt = buildReproPrompt(input.issue, input.contextNote, { browser: input.browser });
     const res = await safeExec(
       this.bin,
       buildClaudeArgs(prompt, this.metadata.model, this.metadata.effort, this.permissionMode),
       {
         cwd: input.workdir,
         timeoutMs: input.timeoutMs,
+        env: input.env,
       },
     );
     const combined = `# stdout\n${res.stdout}\n\n# stderr\n${res.stderr}`;

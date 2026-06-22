@@ -98,7 +98,7 @@ ${codeBlock(r.relevantLogs)}
 
 ### Screenshots
 
-_None captured in this run._
+${bullets(r.screenshots ?? [], "_None captured in this run._")}
 
 ### Failing Tests
 

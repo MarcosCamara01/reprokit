@@ -95,7 +95,40 @@ export const FIX_PROTOCOL = `SDD stages for this step — Fix -> Validate:
 - Scope guard — if a correct fix would exceed roughly one file or ~50 lines, or needs a broader redesign, do NOT sprawl: set "hardStop" with category "out-of-scope" so a human can scope it.
 - Validate — make the change so a test capturing the bug passes and the full suite stays green; list tests in "testsAddedOrUpdated".`;
 
-export function buildReproPrompt(issue: IssueContext, contextNote?: string): string {
+/** Optional capabilities the orchestrator can grant a worker for a given run. */
+export interface WorkerCapabilities {
+  /** When true, the worker is told it may drive a real headless browser. */
+  browser?: boolean;
+}
+
+/**
+ * Browser-verification guidance, appended only for UI/browser-shaped bugs. The tool
+ * (`agent-browser`) runs in the execution environment, not as a reprokit dependency, so
+ * the worker is told to skip gracefully if it is absent rather than fail the run. The
+ * "screenshots" field is requested here rather than baked into the shared result schema,
+ * which keeps the non-browser prompt byte-identical to its previous form.
+ */
+export const BROWSER_PROTOCOL = `Browser verification (this bug is UI/browser-shaped):
+A headless browser CLI named "agent-browser" is available on PATH. Use it to make the
+evidence concrete instead of reasoning about the UI in the abstract:
+- Start the app's local dev server if one is needed, then: agent-browser open <local url>
+- Capture page state with: agent-browser snapshot  (accessibility tree; token-cheap)
+- Drive the reported steps with: agent-browser click/fill/press <ref>
+- Save at least one screenshot of the relevant state: agent-browser screenshot ./.reprokit-artifacts/<name>.png
+Only navigate to the app running locally (localhost / 127.0.0.1) — never browse the public internet.
+List every screenshot path you saved in a "screenshots": ["..."] array in your JSON result.
+If agent-browser is not installed or the app cannot be served, skip browser evidence and
+note that in "summary" — do not fail the whole run over it.`;
+
+function browserSection(caps?: WorkerCapabilities): string {
+  return caps?.browser ? `\n\n${BROWSER_PROTOCOL}` : "";
+}
+
+export function buildReproPrompt(
+  issue: IssueContext,
+  contextNote?: string,
+  caps?: WorkerCapabilities,
+): string {
   return `You are a bug reproduction worker.
 
 You are working inside an isolated repository checkout.
@@ -118,7 +151,7 @@ Your task:
 
 ${SDD_PRINCIPLES}
 
-${REPRO_PROTOCOL}
+${REPRO_PROTOCOL}${browserSection(caps)}
 
 ${HARD_STOP_RULE}
 
@@ -127,7 +160,11 @@ Return ONLY a single JSON object as the last thing you print, in this exact shap
 ${REPRO_RESULT_SCHEMA}`;
 }
 
-export function buildFixPrompt(issue: IssueContext, report: string): string {
+export function buildFixPrompt(
+  issue: IssueContext,
+  report: string,
+  caps?: WorkerCapabilities,
+): string {
   return `You are a bug fix worker.
 
 You are working inside an isolated repository checkout.
@@ -151,7 +188,7 @@ Rules:
 
 ${SDD_PRINCIPLES}
 
-${FIX_PROTOCOL}
+${FIX_PROTOCOL}${browserSection(caps)}
 
 ${HARD_STOP_RULE}
 
