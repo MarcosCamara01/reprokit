@@ -79,6 +79,8 @@ GitHub webhook
 - git
 - Caddy or Nginx
 - Codex CLI and/or Claude CLI installed and authenticated
+- Optional, for in-loop UI-bug evidence: the `agent-browser` CLI + a Chromium/Chrome
+  binary on PATH. Without them, `needsBrowser` bugs degrade cleanly (no screenshots).
 - Repo cloned to something like `/opt/reprokit`
 - Persistent `.runs/` directory
 

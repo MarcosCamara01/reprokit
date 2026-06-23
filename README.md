@@ -108,6 +108,8 @@ runtime uses Gemini through `@ai-sdk/google`, so it needs `GEMINI_API_KEY`.
 - Optional: Codex CLI, if you want `/fix codex`
 - Optional: Claude Code CLI, if you want `/fix claude`
 - Optional: Gemini API key, if you want to run the Eve runtime with `npm run dev`
+- Optional: `agent-browser` CLI plus a Chromium/Chrome binary, for in-loop browser
+  evidence (screenshots / DOM snapshots) on UI-shaped bugs
 
 For local testing, the public HTTPS URL can be a tunnel such as Cloudflare Tunnel,
 ngrok, or localtunnel. For production, use a VPS or long-running service with a
@@ -470,7 +472,10 @@ repositories, run tests, run AI coding CLIs, and take several minutes.
 - Worker quality depends on the installed Codex or Claude CLI.
 - If a worker CLI is missing, the result is a labelled mock.
 - Monorepo targeting is basic.
-- Browser checks are opt-in.
+- Browser checks are opt-in (`RUN_BROWSER_CHECKS=1`). For UI-shaped bugs the repro and
+  fix workers can also use the in-loop `agent-browser` CLI to reproduce the bug and
+  confirm the fix, when it (plus a Chromium/Chrome binary) is present in the execution
+  environment; if absent, the run degrades cleanly with no screenshots.
 
 ## Project Structure
 

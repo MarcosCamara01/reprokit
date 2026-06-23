@@ -56,6 +56,10 @@ describe("worker prompts", () => {
 
     const fixOn = buildFixPrompt(issue, "Pre-fix reproduction report.", { browser: true });
     expect(fixOn).toContain("agent-browser");
+    expect(fixOn).toContain('"screenshots"');
+    // The fix-phase block must tell the worker to confirm the fix in the browser,
+    // not just reproduce it (after-fix screenshot guidance is unique to the fix block).
+    expect(fixOn).toContain("after.png");
   });
 
   it("leaves prompts byte-identical when browser is off (no caps == browser:false)", () => {

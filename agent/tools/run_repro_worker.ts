@@ -3,6 +3,7 @@ import { z } from "zod";
 import { githubProvider, persistWorkerResult } from "../../src/tool-helpers.ts";
 import { runPaths, ensureRunDirs } from "../../src/utils/paths.ts";
 import { defaultWorkerProvider, getWorker } from "../../src/workers/index.ts";
+import { browserFieldsFor } from "../../src/workflow/browser-env.ts";
 
 export default defineTool({
   description:
@@ -29,6 +30,10 @@ export default defineTool({
       issue,
       workdir: paths.repo,
       timeoutMs: Number(process.env.WORKER_TIMEOUT_MS) || 900_000,
+      // Mirror the standalone workflow: grant the headless-browser capability +
+      // constrained env for needsBrowser bugs (a no-op `{}` otherwise). Keeps the
+      // Eve agent surface at parity with src/workflow/issue-workflow.ts.
+      ...browserFieldsFor(issue, key),
     });
 
     persistWorkerResult(key, "last-repro.json", result);

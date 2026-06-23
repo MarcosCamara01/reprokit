@@ -6,8 +6,9 @@ the user's intent: do NOT fix the bug, commit, or push.
 Do:
 - Inspect the repo and detect the stack and scripts.
 - Run only relevant commands to trigger the bug.
-- For browser/UI bugs, prefer existing Playwright/e2e scripts or add a minimal
-  failing Playwright test when safe and useful.
+- For browser/UI bugs, use the in-loop `agent-browser` CLI when granted (gated by
+  `needsBrowser`) to reproduce in a real browser and capture screenshots; existing
+  Playwright/e2e scripts are a complementary signal.
 - Capture browser evidence in the result: failing command, logs, screenshots,
   trace/report paths, or the minimal failing test.
 - Optionally create a minimal failing test if safe and useful.

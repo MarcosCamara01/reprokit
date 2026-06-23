@@ -5,6 +5,7 @@ import { githubProvider, persistWorkerResult } from "../../src/tool-helpers.ts";
 import { runPaths, ensureRunDirs } from "../../src/utils/paths.ts";
 import { prepareWorkdir } from "../../src/workflow/prepare-workdir.ts";
 import { defaultWorkerProvider, getWorker } from "../../src/workers/index.ts";
+import { browserFieldsFor } from "../../src/workflow/browser-env.ts";
 import { logger } from "../../src/utils/logger.ts";
 
 export default defineTool({
@@ -42,6 +43,9 @@ export default defineTool({
       workdir: paths.repo,
       branchName,
       timeoutMs: Number(process.env.WORKER_TIMEOUT_MS) || 900_000,
+      // Mirror the standalone workflow: grant agent-browser + constrained env for
+      // needsBrowser bugs so the fix worker can verify its change in a real browser.
+      ...browserFieldsFor(issue, key),
     });
 
     persistWorkerResult(key, "last-fix.json", result);

@@ -131,6 +131,10 @@ export interface FixWorkerInput {
   workdir: string;
   branchName: string;
   timeoutMs: number;
+  /** When true, the worker prompt grants the headless-browser (agent-browser) capability. */
+  browser?: boolean;
+  /** Extra environment for the worker process (e.g. constrained AGENT_BROWSER_* vars). */
+  env?: Record<string, string>;
 }
 
 export interface FixWorkerResult {
@@ -146,6 +150,8 @@ export interface FixWorkerResult {
   relevantLogs: string[];
   risks: string[];
   recommendation: string;
+  /** Screenshot paths the worker captured via agent-browser while verifying the fix, if any. */
+  screenshots?: string[];
   mocked?: boolean;
   /** Set when the worker deliberately stopped for a human decision. */
   hardStop?: HardStop | null;

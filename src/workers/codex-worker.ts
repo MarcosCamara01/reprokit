@@ -70,12 +70,12 @@ export class CodexWorker implements CodingWorker {
     } catch {
       /* keep fallback */
     }
-    const prompt = buildFixPrompt(input.issue, report);
+    const prompt = buildFixPrompt(input.issue, report, { browser: input.browser });
     // Fixes need write access to the workspace.
     const res = await safeExec(
       this.bin,
       buildCodexArgs(prompt, "workspace-write", this.metadata.model, this.metadata.effort),
-      { cwd: input.workdir, timeoutMs: input.timeoutMs },
+      { cwd: input.workdir, timeoutMs: input.timeoutMs, env: input.env },
     );
     const combined = `# stdout\n${res.stdout}\n\n# stderr\n${res.stderr}`;
     writeRawOutput(dirname(input.workdir), "codex-fix.txt", redactSecrets(combined));

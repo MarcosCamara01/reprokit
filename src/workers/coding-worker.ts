@@ -159,6 +159,7 @@ export function coerceFixResult(
     relevantLogs: asStringArray(j.relevantLogs),
     risks: asStringArray(j.risks),
     recommendation: String(j.recommendation ?? ""),
+    screenshots: asStringArray(j.screenshots),
     hardStop: coerceHardStop(j.hardStop),
   };
 }

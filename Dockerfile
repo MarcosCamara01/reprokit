@@ -7,6 +7,10 @@ RUN apt-get update \
     openssh-client \
   && rm -rf /var/lib/apt/lists/*
 
+# NOTE: in-loop UI-bug evidence needs the `agent-browser` CLI + a Chromium/Chrome
+# binary, intentionally NOT installed here (environment provisioning is an ops task;
+# see docs/cloud-deployment-notes.md and specs/agent-browser-repro). Without them,
+# `needsBrowser` runs degrade cleanly with no screenshots.
 WORKDIR /app
 
 COPY package.json package-lock.json ./

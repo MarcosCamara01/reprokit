@@ -271,6 +271,7 @@ export class IssueWorkflow {
       workdir: paths.repo,
       branchName,
       timeoutMs: this.config.workerTimeoutMs,
+      ...browserFieldsFor(issue, key),
     });
 
     if (await this.handleHardStop(ref, key, state, fix.hardStop, workerProvider, "fix")) {
@@ -656,6 +657,9 @@ After you decide, reply on this issue and comment \`/fix\` (or \`/fix codex\` / 
     const workerLogs = fix.relevantLogs.length
       ? "```\n" + redactAndTruncate(fix.relevantLogs.join("\n"), this.config.maxLogChars) + "\n```"
       : "_None reported._";
+    const screenshots = fix.screenshots?.length
+      ? fix.screenshots.map((s) => `- \`${s}\``).join("\n")
+      : "_None captured in this run._";
     const failedCommand = checks?.failedCommand;
     const passedChecks = checks
       ? checks.success
@@ -733,6 +737,10 @@ ${args.nextSteps.map((s) => `- ${s}`).join("\n") || "_None._"}
 
 ## Evidence
 
+### Screenshots
+
+${screenshots}
+
 ### Commands Run By Worker
 
 ${commands}
@@ -757,6 +765,9 @@ ${checkLogs}
     const suspectedFiles = result.suspectedFiles.length
       ? result.suspectedFiles.map((f) => `- \`${f}\``).join("\n")
       : "_None reported._";
+    const screenshots = result.screenshots?.length
+      ? result.screenshots.map((s) => `- \`${s}\``).join("\n")
+      : "_None captured in this run._";
     const blocker = result.reproduced
       ? "The bug still reproduced after the fix, so opening a PR would be unsafe."
       : "_None. The bug was not reproduced after the fix._";
@@ -822,6 +833,10 @@ ${blocker}
 ${nextSteps.map((s) => `- ${s}`).join("\n")}
 
 ## Evidence
+
+### Screenshots
+
+${screenshots}
 
 ### Commands Run
 

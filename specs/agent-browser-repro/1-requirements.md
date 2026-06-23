@@ -49,6 +49,10 @@ already flags (see [parse-bug.ts](../../src/providers/parse-bug.ts)) but nothing
   byte-identical prompts and behavior to today — no browser overhead, no prompt change.
 - **G5**: Because target repos are untrusted, the browser is constrained per run:
   headless, a per-run isolated session, and a navigation allowlist limited to localhost.
+- **G6** (added by CR-002): When a bug is `needsBrowser`, the **fix** worker itself is
+  granted `agent-browser` so it can debug the broken UI and confirm in a real browser that
+  its change resolves the bug before reporting `fixed: true`. This is in addition to the
+  orchestrator's independent post-fix verification (G3); both layers run.
 
 ## Non-Goals
 

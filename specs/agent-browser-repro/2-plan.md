@@ -86,11 +86,17 @@ when no browser is wanted.
 | Exact path | Role | Notes |
 |---|---|---|
 | `src/types.ts` | Modified | Add `browser?: boolean` + `env?: Record<string,string>` to `ReproWorkerInput`; add `screenshots?: string[]` to `ReproWorkerResult` |
-| `src/workers/prompts.ts` | Modified | Add `BROWSER_PROTOCOL` const; add a capabilities arg to `buildReproPrompt`/`buildFixPrompt`; append the block only when browser is on |
+| `src/workers/prompts.ts` | Modified | Add `BROWSER_PROTOCOL` + `BROWSER_PROTOCOL_FIX` consts; add a capabilities arg to `buildReproPrompt`/`buildFixPrompt`; append the matching block only when browser is on |
 | `src/workers/coding-worker.ts` | Modified | `coerceReproResult` reads `screenshots` (via existing `asStringArray`), defaulting to `[]` |
 | `src/reports/reproduction-report.ts` | Modified | Render `result.screenshots` into the existing `### Screenshots` section |
 | `src/workflow/browser-env.ts` | New | `buildBrowserEnv(runKey)` → constrained `AGENT_BROWSER_*` env (headless, per-run session, localhost allowlist) |
 | `src/workflow/issue-workflow.ts` | Modified | For `needsBrowser` issues, pass `browser: true` + `buildBrowserEnv(key)` into the repro, pre-fix, and post-fix worker inputs; thread `result.screenshots` into report state |
+| `agent/tools/run_repro_worker.ts` | Modified | CR-002: spread `browserFieldsFor(issue, key)` into the `runRepro` input so the Eve agent surface is at parity with the standalone workflow |
+| `agent/tools/run_fix_worker.ts` | Modified | CR-002: spread `browserFieldsFor(issue, key)` into the `runFix` input so the fix worker can verify its change in a browser |
+| `src/types.ts` (CR-002) | Modified | Add `browser?`/`env?` to `FixWorkerInput`; add `screenshots?` to `FixWorkerResult` |
+| `src/workers/coding-worker.ts` (CR-002) | Modified | `coerceFixResult` reads `screenshots`, defaulting to `[]` |
+| `src/workers/claude-worker.ts` / `codex-worker.ts` (CR-002) | Modified | `runFix` passes the capability to `buildFixPrompt` and `env: input.env` to `safeExec` |
+| `src/workflow/issue-workflow.ts` (CR-002) | Modified | Spread `browserFieldsFor` into the `runFix` call; render screenshots in the Fix Report and the Post-Fix Verification Report |
 | `src/workers/claude-worker.ts` | Modified | Pass capabilities to the prompt builders and `env: input.env` to `safeExec` |
 | `src/workers/codex-worker.ts` | Modified | Same as claude-worker (mirror); browser repro uses the existing sandbox flags |
 | `src/workers/mock-worker.ts` | Reference | Confirm it still satisfies the updated types; no behavior change expected |

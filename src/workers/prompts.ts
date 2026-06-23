@@ -120,8 +120,30 @@ List every screenshot path you saved in a "screenshots": ["..."] array in your J
 If agent-browser is not installed or the app cannot be served, skip browser evidence and
 note that in "summary" — do not fail the whole run over it.`;
 
-function browserSection(caps?: WorkerCapabilities): string {
-  return caps?.browser ? `\n\n${BROWSER_PROTOCOL}` : "";
+/**
+ * Browser-verification guidance for the FIX phase. Same tool and localhost-only
+ * constraint as the repro block, but framed around proving the fix: reproduce the
+ * broken UI, apply the change, then re-drive the flow to confirm the bug is gone
+ * before reporting `fixed: true`. Screenshots are requested in prose (not the shared
+ * result schema) so the non-browser fix prompt stays byte-identical to its prior form.
+ */
+export const BROWSER_PROTOCOL_FIX = `Browser verification (this bug is UI/browser-shaped):
+A headless browser CLI named "agent-browser" is available on PATH. Use it to debug the bug
+and to prove your fix actually resolves it, instead of reasoning about the UI in the abstract:
+- Start the app's local dev server if one is needed, then: agent-browser open <local url>
+- Reproduce the broken behavior first and capture it:
+  agent-browser screenshot ./.reprokit-artifacts/before.png
+- Drive the reported steps with: agent-browser snapshot / click / fill / press <ref>
+- After your change, re-drive the same steps, confirm the bug is gone, and capture it:
+  agent-browser screenshot ./.reprokit-artifacts/after.png
+- Do NOT report "fixed": true for a UI bug unless the browser shows the issue is resolved.
+Only navigate to the app running locally (localhost / 127.0.0.1) — never browse the public internet.
+List every screenshot path you saved in a "screenshots": ["..."] array in your JSON result.
+If agent-browser is not installed or the app cannot be served, skip browser evidence and
+note that in "summary" — do not fail the whole run over it.`;
+
+function browserSection(protocol: string, caps?: WorkerCapabilities): string {
+  return caps?.browser ? `\n\n${protocol}` : "";
 }
 
 export function buildReproPrompt(
@@ -151,7 +173,7 @@ Your task:
 
 ${SDD_PRINCIPLES}
 
-${REPRO_PROTOCOL}${browserSection(caps)}
+${REPRO_PROTOCOL}${browserSection(BROWSER_PROTOCOL, caps)}
 
 ${HARD_STOP_RULE}
 
@@ -188,7 +210,7 @@ Rules:
 
 ${SDD_PRINCIPLES}
 
-${FIX_PROTOCOL}${browserSection(caps)}
+${FIX_PROTOCOL}${browserSection(BROWSER_PROTOCOL_FIX, caps)}
 
 ${HARD_STOP_RULE}
 
