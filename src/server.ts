@@ -3,8 +3,8 @@ import { handleWebhook } from "./github/github-webhook.ts";
 import { createLogger } from "./utils/logger.ts";
 
 /**
- * Standalone webhook server (Phase 1 path). This is the simplest way to run the
- * agent without the full Eve runtime: point a GitHub webhook (issues +
+ * Standalone webhook server (legacy fallback). Use it when you need to run the
+ * agent without Eve's native GitHub channel: point a GitHub webhook (issues +
  * issue_comment events) at POST /webhook.
  *
  * When running under Eve (`eve dev`), the GitHub *channel* is the intake instead

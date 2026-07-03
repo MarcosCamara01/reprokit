@@ -1,6 +1,6 @@
 import { defineTool } from "eve/tools";
 import { z } from "zod";
-import { githubProvider } from "../../src/tool-helpers.ts";
+import { githubProviderForTool } from "../../src/tool-helpers.ts";
 import { redactSecrets } from "../../src/utils/redact-secrets.ts";
 
 export default defineTool({
@@ -12,8 +12,8 @@ export default defineTool({
     owner: z.string().optional(),
     repo: z.string().optional(),
   }),
-  async execute({ number, body, owner, repo }) {
-    const provider = githubProvider(owner, repo);
+  async execute({ number, body, owner, repo }, ctx) {
+    const provider = await githubProviderForTool(ctx, owner, repo);
     await provider.postComment(String(number), redactSecrets(body));
     return { ok: true };
   },

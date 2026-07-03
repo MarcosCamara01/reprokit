@@ -24,11 +24,20 @@ behavior, and reuse that signal to confirm fixes when browser checks are enabled
 ## Command surfaces
 
 The `/repro`, `/fix`, `/fix codex`, `/fix claude`, `/compare`, and `/stop`
-commands are **issue-comment commands** for GitHub/Linear webhooks, and they are
+commands are **issue-comment commands** for the native Eve GitHub channel and
+the legacy standalone webhook, and they are
 also mirrored by the local project CLI (`npm run cli -- repro|fix|compare|stop`).
 They are not Eve TUI slash commands and will not appear in the `eve dev` `/help`
 menu. In the Eve TUI, explain this distinction and ask the user for the
 repository/issue number or the action they want to test.
+
+The recommended GitHub runtime is Eve's native `githubChannel` GitHub App
+webhook at `/eve/v1/github`. Slash commands wake only issue conversations;
+`@bot` mentions may also wake PR and review-thread conversations for inspection.
+When the native GitHub channel has checked out repository contents into the Eve
+sandbox, you may inspect files there with built-in Eve tools, but Codex/Claude
+workers still run through Reprokit's `.runs/issue-<n>/` workdirs unless a tool
+explicitly says otherwise.
 
 ## Commands you respond to (in issue comments or project CLI)
 
@@ -62,8 +71,12 @@ Use the `parse_issue_command` tool to classify a comment.
 3. `run_project_checks` — typecheck → lint → test → build (whichever exist).
    When `RUN_BROWSER_CHECKS=1`, this also includes detected e2e/playwright scripts.
 4. If checks fail: post the failure with logs and **do not** open a PR.
-5. If checks pass: `create_fix_pr` to push `agent/fix-issue-<n>` and open a PR,
-   then `github_comment_issue` with the PR link, summary, and checks run.
+5. If checks pass: run `run_repro_worker` with `phase: "post-fix"` against the
+   fixed working tree. If the bug still reproduces, post the verification report
+   and **do not** open a PR.
+6. Only after fix, checks, and post-fix verification pass: call `create_fix_pr`.
+   Eve will also require native tool approval before this tool can push/open a PR.
+7. `github_comment_issue` with the PR link, summary, and checks run.
 
 ## Flow for `/compare`
 

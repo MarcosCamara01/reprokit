@@ -79,7 +79,7 @@ precedence over the automatic flow.
 
 ```txt
 GitHub issue/comment
-  -> webhook POST /webhook
+  -> Eve native GitHub App webhook POST /eve/v1/github
   -> command parser
   -> issue workflow
   -> isolated .runs checkout
@@ -91,19 +91,29 @@ GitHub issue/comment
 
 There are two ways to run it:
 
-- Standalone webhook: `npm run webhook`
-- Eve runtime: `npm run dev`
+- Recommended Eve runtime: `npm run dev`, using Eve's native GitHub channel.
+- Legacy standalone fallback: `npm run webhook`, using the custom `/webhook`
+  server path.
 
-The standalone webhook is the simplest path and does not require Gemini. The Eve
-runtime uses Gemini through `@ai-sdk/google`, so it needs `GEMINI_API_KEY`.
+The Eve runtime is the primary path for GitHub App deployments. The standalone
+webhook is kept for local fallback, CLI-compatible plumbing tests, and operators
+who still need the older token-based deployment while migrating.
+
+When the native Eve GitHub channel runs on a firewall-capable sandbox backend,
+Eve checks out the repository into the sandbox for built-in file and shell
+tools. Reprokit still keeps `.runs/issue-<number>/repo` for Codex/Claude workers
+and the legacy CLI/webhook path, because those workers currently operate on host
+filesystem paths.
 
 ## Requirements
 
 - Node.js 24 or newer
 - npm
 - Git
-- A GitHub repository where you can create webhooks
-- A GitHub token that can read issues, comment, push branches, and open PRs
+- A GitHub repository where you can install a GitHub App or create webhooks
+- For the recommended Eve runtime: a GitHub App installation
+- For the legacy standalone fallback: a GitHub token that can read issues,
+  comment, push branches, and open PRs
 - A public HTTPS URL for GitHub webhook delivery
 - Optional: Codex CLI, if you want `/fix codex`
 - Optional: Claude Code CLI, if you want `/fix claude`
@@ -129,15 +139,24 @@ Run local checks:
 ```bash
 npm run typecheck
 npm test
+npx eve info --json
+npx eve eval --list
+npx eve eval
 ```
 
-Start the standalone webhook:
+Start the recommended Eve runtime:
+
+```bash
+npm run dev
+```
+
+For the legacy standalone fallback, start the webhook server:
 
 ```bash
 npm run webhook
 ```
 
-Health check:
+Standalone fallback health check:
 
 ```bash
 curl http://127.0.0.1:3001/health
@@ -151,7 +170,34 @@ Expected response:
 
 ## Environment Variables
 
-### Required for the standalone GitHub webhook
+### Required for the recommended Eve GitHub App runtime
+
+| Variable | Required | What it is | Where to get it |
+| --- | --- | --- | --- |
+| `GITHUB_APP_ID` | Yes | GitHub App id used by Eve's native GitHub channel. | GitHub App settings. |
+| `GITHUB_APP_PRIVATE_KEY` | Yes | PEM private key for the GitHub App. Escaped `\n` values are supported by Eve. | GitHub App private key download. |
+| `GITHUB_WEBHOOK_SECRET` | Yes | Shared secret used to verify GitHub App webhook signatures. | GitHub App webhook settings. |
+| `GITHUB_APP_SLUG` | Yes unless `botName` is configured in code | Bot slug used for `@mention` dispatch. | GitHub App settings URL/slug. |
+| `GEMINI_API_KEY` | Yes for the default model config | Google AI Studio / Gemini API key used by the Eve agent model. | Google AI Studio API key page. |
+| `AGENT_MODEL` | No | Gemini model name used by Eve. | Defaults to the value in `.env.example`. |
+| `GITHUB_APP_INSTALLATION_ID` | No | Optional installation id for local App-auth tool tests outside a GitHub-channel session. | GitHub App installation URL/API. |
+
+Point the GitHub App webhook URL at:
+
+```txt
+https://<deployment>/eve/v1/github
+```
+
+Subscribe at least to `Issues`, `Issue comments`, and `Pull request review
+comments`. Add `Pull requests`, `Check suites`, `Check runs`, and
+`Workflow runs` when you want the native optional hooks enabled.
+
+Eve attaches the GitHub App installation id to sessions started by
+`githubChannel`. Reprokit tools use that context to mint installation tokens for
+issue reads, comments, branch pushes, and PR creation. `GITHUB_TOKEN` is no
+longer required on the native channel path.
+
+### Required for the legacy standalone GitHub webhook fallback
 
 | Variable | Required | What it is | Where to get it |
 | --- | --- | --- | --- |
@@ -160,13 +206,6 @@ Expected response:
 | `GITHUB_REPO` | Yes for CLI, fallback for webhook | Repository name. | The `REPO` part of `https://github.com/OWNER/REPO`. |
 | `GITHUB_WEBHOOK_SECRET` | Yes in production | Shared secret used to verify webhook signatures. | Generate a random value locally and paste the same value into the GitHub webhook settings. |
 | `PORT` | No | Local port for the standalone webhook server. | Defaults to `3001`. |
-
-### Required only for Eve runtime
-
-| Variable | Required | What it is | Where to get it |
-| --- | --- | --- | --- |
-| `GEMINI_API_KEY` | Yes for `npm run dev` | Google AI Studio / Gemini API key used by the Eve agent model. | Google AI Studio API key page. |
-| `AGENT_MODEL` | No | Gemini model name used by Eve. | Defaults to the value in `.env.example`. |
 
 ### Worker configuration
 
@@ -185,21 +224,37 @@ Expected response:
 | `WORKER_MOCK` | No | Set to `1` to force mock workers for demos and plumbing tests. |
 | `WORKER_MOCK_HARDSTOP` | No | With `WORKER_MOCK=1`, makes the mock worker hard-stop so you can demo the "human decision needed" flow. Use `repro`, `fix`, or `both`. |
 
-### GitHub App variables
-
-These are present for future GitHub App support, but the current MVP uses
-`GITHUB_TOKEN`.
-
-| Variable | Status |
-| --- | --- |
-| `GITHUB_APP_ID` | Not required yet. |
-| `GITHUB_PRIVATE_KEY` | Not required yet. |
-
 ## How To Get Each Secret
+
+### `GITHUB_APP_ID` / `GITHUB_APP_PRIVATE_KEY`
+
+Create a GitHub App and install it on the repositories Reprokit may manage.
+
+Minimum repository permissions:
+
+- `Metadata`: read
+- `Contents`: read and write
+- `Issues`: read and write
+- `Pull requests`: read and write
+- `Checks`: read
+
+Set the App webhook URL to:
+
+```txt
+https://<deployment>/eve/v1/github
+```
+
+Generate a private key for the App and set it as `GITHUB_APP_PRIVATE_KEY`.
+Escaped newline values (`\n`) are supported. Set `GITHUB_APP_SLUG` to the App
+slug, for example `reprokit-agent`; Reprokit uses it to ignore its own comments
+and handle `@bot` mentions.
 
 ### `GITHUB_TOKEN`
 
 Create a GitHub personal access token.
+
+This is only required for the legacy standalone webhook, the local CLI, or local
+tool tests where no Eve GitHub-channel auth context is available.
 
 Simplest option:
 
@@ -306,7 +361,41 @@ CLAUDE_EFFORT=high
 CLAUDE_PERMISSION_MODE=acceptEdits
 ```
 
-## GitHub Webhook Setup
+## Native GitHub App Setup
+
+In your GitHub App settings:
+
+1. Set `Webhook URL` to your public URL plus `/eve/v1/github`.
+2. Set `Webhook secret` to the same value as `GITHUB_WEBHOOK_SECRET`.
+3. Subscribe to:
+   - `Issues`
+   - `Issue comments`
+   - `Pull request review comments`
+4. Optionally subscribe to CI and PR events:
+   - `Pull requests`
+   - `Check suites`
+   - `Check runs`
+   - `Workflow runs`
+5. Install the App on the repository or organization Reprokit should manage.
+
+Example payload URL:
+
+```txt
+https://reprokit.example.com/eve/v1/github
+```
+
+For local development, run Eve and tunnel the Eve server:
+
+```bash
+npm run dev -- --no-ui
+```
+
+Then point the GitHub App webhook to the tunnel URL plus `/eve/v1/github`.
+
+## Standalone Webhook Setup (Fallback)
+
+Use this path only when you are running `npm run webhook` instead of Eve's
+native GitHub channel.
 
 In your GitHub repository:
 
@@ -334,6 +423,24 @@ GitHub -> https://your-tunnel.example/webhook -> http://127.0.0.1:3001/webhook
 ```
 
 ## Try It Locally
+
+### Eve-native smoke tests
+
+Run the native Eve discovery and eval suite:
+
+```bash
+npx eve info --json
+npx eve eval
+```
+
+The eval suite lives in `evals/` and uses `mockModel` through
+`REPROKIT_EVAL_MOCK_MODEL=1`, so it does not need Gemini or GitHub credentials.
+It covers the main safety invariants: `/repro` never opens PRs, failed checks
+block PR creation, insufficient issues ask for details, redaction happens before
+comments, hard stops ask for a human decision, and the native GitHub channel is
+discoverable at `/eve/v1/github`.
+
+### CLI and standalone fallback
 
 You can test the plumbing without Codex or Claude by forcing mock workers:
 
@@ -423,8 +530,10 @@ Recommended low-cost shape:
 - Node 24+
 - Git
 - Caddy or Nginx for HTTPS
-- `npm run webhook` managed by `systemd`, `pm2`, or Docker
-- persistent `.runs/`
+- `npm run build` plus `npx eve start --host 0.0.0.0` managed by `systemd`,
+  `pm2`, or Docker
+- persistent `.runs/` and `.workflow-data/`
+- reverse proxy forwarding both `/eve/` and `/.well-known/workflow/`
 
 See [docs/cloud-deployment-notes.md](docs/cloud-deployment-notes.md) for the
 deployment notes and server sizing recommendations.
@@ -437,8 +546,8 @@ cp .env.example .env
 docker compose up --build
 ```
 
-The compose file runs the standalone webhook on `http://127.0.0.1:3001` and
-stores workflow state in a persistent `reprokit_runs` volume mounted at
+The compose file runs the standalone fallback webhook on `http://127.0.0.1:3001`
+and stores workflow state in a persistent `reprokit_runs` volume mounted at
 `/app/.runs`.
 
 The default image includes Node 24 and Git, but it does not install Codex CLI or
@@ -453,20 +562,23 @@ repositories, run tests, run AI coding CLIs, and take several minutes.
 - Never commit `.env`.
 - Rotate any token that was pasted into an issue, log, screenshot, or committed
   file.
-- Use a fine-grained GitHub token when possible.
+- Prefer GitHub App installation auth through Eve's native `githubChannel`.
+- Use a fine-grained GitHub token only for the standalone fallback or CLI path.
 - Keep token permissions as narrow as the project allows.
 - Use `GITHUB_WEBHOOK_SECRET` in any public deployment.
 - Do not expose the webhook without signature verification.
 - Review PRs manually; the agent never auto-merges.
+- `create_fix_pr` is protected by Eve-native human approval and still checks
+  Reprokit's fix/checks/post-fix-verification artifacts before pushing.
 - Be careful with `RUN_BROWSER_CHECKS=1` on untrusted repositories because
   browser/e2e tests can execute project code.
 
 ## Current Limitations
 
-- GitHub App authentication is designed for later, but the current MVP uses a
-  personal access token.
 - Linear support is stubbed in `src/providers/linear-provider.ts`.
 - There is no dashboard UI; state lives in `.runs/`.
+- Eve's GitHub channel may checkout repository contents into the sandbox, but
+  Codex and Claude workers still use host `.runs/issue-<n>/repo` checkouts.
 - Worker quality depends on the installed Codex or Claude CLI.
 - If a worker CLI is missing, the result is a labelled mock.
 - Monorepo targeting is basic.
@@ -475,7 +587,8 @@ repositories, run tests, run AI coding CLIs, and take several minutes.
 ## Project Structure
 
 ```txt
-agent/                      Eve agent wrapper and tools
+agent/                      Eve agent wrapper, channel, sandbox, tools, skills, schedules, subagents
+evals/                      Native Eve evals for workflow and safety invariants
 src/
   app.ts                    composition root
   server.ts                 standalone webhook server
@@ -511,7 +624,7 @@ Contributions are welcome. Good first areas:
 
 - Better worker prompts
 - More test coverage around workflow states
-- GitHub App authentication
+- More native GitHub App deployment examples
 - Linear provider implementation
 - Docker deployment files
 - Cleaner reporting and artifacts
@@ -522,6 +635,9 @@ Before opening a PR:
 ```bash
 npm run typecheck
 npm test
+npm run build
+npx eve info --json
+npx eve eval
 ```
 
 ## License

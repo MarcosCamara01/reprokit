@@ -62,13 +62,23 @@ Better for regular use:
 
 ## Target architecture
 
+Recommended Eve native path:
+
 ```txt
-GitHub webhook
-  -> https://reprokit.example.com/webhook
+GitHub App webhook
+  -> https://reprokit.example.com/eve/v1/github
   -> Caddy or Nginx HTTPS reverse proxy
+  -> npm run dev / eve start
+  -> .runs/, GitHub comments, branches, PRs
+```
+
+Legacy standalone fallback:
+
+```txt
+GitHub repository webhook
+  -> https://reprokit.example.com/webhook
   -> localhost:3001
   -> npm run webhook
-  -> .runs/, GitHub comments, branches, PRs
 ```
 
 ## Server requirements
@@ -87,21 +97,31 @@ GitHub webhook
 Do not commit real secrets. Configure these on the server:
 
 ```env
-GITHUB_TOKEN=
-GITHUB_OWNER=MarcosCamara01
-GITHUB_REPO=reprokit
+GITHUB_APP_ID=
+GITHUB_APP_PRIVATE_KEY=
+GITHUB_APP_SLUG=
 GITHUB_WEBHOOK_SECRET=
 GEMINI_API_KEY=
 AGENT_MODEL=gemini-3.5-flash
 DEFAULT_WORKER=codex
 CODEX_BIN=codex
 CLAUDE_BIN=claude
-PORT=3001
+PORT=3000
 ```
+
+`GITHUB_TOKEN`, `GITHUB_OWNER`, and `GITHUB_REPO` are only required for the
+legacy standalone fallback or CLI runs outside an Eve GitHub-channel session.
+For local App-auth tests outside GitHub webhooks, `GITHUB_APP_INSTALLATION_ID`
+can provide the installation id that the native channel normally attaches to
+session auth.
 
 Optional:
 
 ```env
+GITHUB_TOKEN=
+GITHUB_OWNER=MarcosCamara01
+GITHUB_REPO=reprokit
+GITHUB_APP_INSTALLATION_ID=
 RUN_BROWSER_CHECKS=1
 WORKER_TIMEOUT_MS=900000
 MAX_LOG_CHARS=12000
@@ -116,14 +136,21 @@ MAX_LOG_CHARS=12000
 5. Create the production `.env` on the server.
 6. Run `npm install`.
 7. Install and authenticate Codex CLI or Claude CLI on the server.
-8. Start `npm run webhook` as a `systemd` service.
-9. Configure Caddy to proxy HTTPS to `127.0.0.1:3001`.
-10. Change the GitHub webhook payload URL to
-    `https://reprokit.example.com/webhook`.
+8. Build and start the Eve runtime:
+   `npm run build` then `PORT=3000 npx eve start --host 0.0.0.0`.
+9. Configure Caddy to proxy HTTPS to the Eve server port. Forward both `/eve/`
+   and `/.well-known/workflow/`; the latter is required for Eve workflow
+   callbacks.
+10. Change the GitHub App webhook payload URL to
+    `https://reprokit.example.com/eve/v1/github`.
 11. Keep GitHub webhook content type as `application/json`.
-12. Subscribe to `Issues` and `Issue comments` events.
+12. Subscribe to `Issues`, `Issue comments`, `Pull requests`,
+    `Pull request review comments`, and optional CI events.
 13. Use the same `GITHUB_WEBHOOK_SECRET` in GitHub and on the server.
 14. Test by creating an issue and commenting `/repro` or `/fix`.
+
+For the legacy standalone fallback, run `npm run webhook`, proxy to
+`127.0.0.1:3001`, and use `https://reprokit.example.com/webhook`.
 
 ## Docker compose option
 
@@ -148,17 +175,17 @@ The base image includes Node 24 and Git. Codex CLI and Claude Code CLI are not
 installed in the default image; install them in a custom image or use
 `WORKER_MOCK=1` for plumbing tests.
 
-## Example systemd service
+## Example systemd service for the Eve runtime
 
 ```ini
 [Unit]
-Description=Reprokit webhook
+Description=Reprokit Eve agent
 After=network.target
 
 [Service]
 Type=simple
 WorkingDirectory=/opt/reprokit
-ExecStart=/usr/bin/npm run webhook
+ExecStart=/usr/bin/env sh -lc 'npm run build && PORT=3000 npx eve start --host 0.0.0.0'
 Restart=always
 RestartSec=5
 Environment=NODE_ENV=production
@@ -167,11 +194,14 @@ Environment=NODE_ENV=production
 WantedBy=multi-user.target
 ```
 
+For the legacy standalone fallback, use `ExecStart=/usr/bin/npm run webhook`
+and proxy to `127.0.0.1:3001`.
+
 ## Example Caddyfile
 
 ```caddyfile
 reprokit.example.com {
-  reverse_proxy 127.0.0.1:3001
+  reverse_proxy 127.0.0.1:3000
 }
 ```
 

@@ -15,6 +15,6 @@
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": false
   },
-  "include": ["src", "agent", "tests"],
+  "include": ["src", "agent", "tests", "evals"],
   "exclude": ["node_modules", ".runs"]
 }

@@ -1,7 +1,7 @@
 import { defineTool } from "eve/tools";
 import { z } from "zod";
 import { existsSync } from "node:fs";
-import { githubProvider, persistWorkerResult } from "../../src/tool-helpers.ts";
+import { githubProviderForTool, persistWorkerResult } from "../../src/tool-helpers.ts";
 import { runPaths, ensureRunDirs } from "../../src/utils/paths.ts";
 import { prepareWorkdir } from "../../src/workflow/prepare-workdir.ts";
 import { defaultWorkerProvider, getWorker } from "../../src/workers/index.ts";
@@ -18,8 +18,8 @@ export default defineTool({
     repo: z.string().optional(),
     worker: z.enum(["codex", "claude"]).optional(),
   }),
-  async execute({ number, owner, repo, worker }) {
-    const provider = githubProvider(owner, repo);
+  async execute({ number, owner, repo, worker }, ctx) {
+    const provider = await githubProviderForTool(ctx, owner, repo);
     const issue = await provider.getIssue(String(number));
     const key = issue.number ?? issue.id;
     const paths = runPaths(key);

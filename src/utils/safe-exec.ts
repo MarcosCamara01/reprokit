@@ -67,6 +67,7 @@ function sanitizedEnv(extra?: Record<string, string | undefined>): NodeJS.Proces
   const STRIP = [
     "GITHUB_TOKEN",
     "GH_TOKEN",
+    "GITHUB_APP_PRIVATE_KEY",
     "GITHUB_PRIVATE_KEY",
     "GITHUB_WEBHOOK_SECRET",
     "OPENAI_API_KEY",

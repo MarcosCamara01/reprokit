@@ -1,7 +1,7 @@
 import { defineTool } from "eve/tools";
 import { z } from "zod";
 import { writeFileSync } from "node:fs";
-import { githubProvider, readWorkerResult } from "../../src/tool-helpers.ts";
+import { githubProviderForTool, readWorkerResult } from "../../src/tool-helpers.ts";
 import { runPaths, ensureRunDirs } from "../../src/utils/paths.ts";
 import {
   renderReproductionReport,
@@ -19,8 +19,8 @@ export default defineTool({
     owner: z.string().optional(),
     repo: z.string().optional(),
   }),
-  async execute({ number, owner, repo }) {
-    const provider = githubProvider(owner, repo);
+  async execute({ number, owner, repo }, ctx) {
+    const provider = await githubProviderForTool(ctx, owner, repo);
     const issue = await provider.getIssue(String(number));
     const key = issue.number ?? issue.id;
 

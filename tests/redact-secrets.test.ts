@@ -19,6 +19,11 @@ describe("redactSecrets", () => {
     expect(out).toContain("[REDACTED]");
   });
 
+  it("redacts GitHub App private key assignments", () => {
+    const out = redactSecrets("GITHUB_APP_PRIVATE_KEY=super-secret-pem");
+    expect(out).toBe("GITHUB_APP_PRIVATE_KEY=[REDACTED]");
+  });
+
   it("redacts DATABASE_URL", () => {
     const out = redactSecrets("DATABASE_URL=postgres://user:pass@host:5432/db");
     expect(out).not.toContain("postgres://user:pass@host");
