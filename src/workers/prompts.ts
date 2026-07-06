@@ -116,10 +116,12 @@ export const WORKER_SKILL_FILES = [
 ] as const;
 
 function stripFrontmatter(markdown: string): string {
-  if (!markdown.startsWith("---\n")) return markdown.trim();
-  const end = markdown.indexOf("\n---\n", 4);
-  if (end === -1) return markdown.trim();
-  return markdown.slice(end + "\n---\n".length).trim();
+  // Normalize CRLF so frontmatter is detected on autocrlf checkouts too.
+  const text = markdown.replace(/\r\n/g, "\n");
+  if (!text.startsWith("---\n")) return text.trim();
+  const end = text.indexOf("\n---\n", 4);
+  if (end === -1) return text.trim();
+  return text.slice(end + "\n---\n".length).trim();
 }
 
 export function workerSkillsBlock(): string {
