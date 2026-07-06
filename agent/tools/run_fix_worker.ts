@@ -1,4 +1,5 @@
 import { defineTool } from "eve/tools";
+import { always } from "eve/tools/approval";
 import { z } from "zod";
 import { existsSync } from "node:fs";
 import { githubProviderForTool, persistWorkerResult } from "../../src/tool-helpers.ts";
@@ -18,6 +19,9 @@ export default defineTool({
     repo: z.string().optional(),
     worker: z.enum(["codex", "claude"]).optional(),
   }),
+  // Durable HITL gate: the run parks at session.waiting until a person
+  // approves, so a fix can never fire from a replayed step on its own.
+  approval: always(),
   async execute({ number, owner, repo, worker }, ctx) {
     const provider = await githubProviderForTool(ctx, owner, repo);
     const issue = await provider.getIssue(String(number));

@@ -4,14 +4,13 @@ import { agentModel } from "./lib/model.ts";
 /**
  * Runtime config for the Issue Repro & Fix Agent.
  *
- * Confirmed Eve API: `defineAgent({ model })` from "eve".
- * The model is provided by `agent/lib/model.ts`, which uses Google directly.
- * Docs: https://vercel.com/docs/eve  ·  https://vercel.com/docs/eve/concepts
+ * The model is a Vercel AI Gateway id (see agent/lib/model.ts). Full option
+ * surface for eve 0.20: node_modules/eve/docs/agent-config.md — reasoning,
+ * modelOptions, limits, compaction, outputSchema, build, experimental.workflow.
+ * Adjacent settings live elsewhere by design: per-tool approvals in
+ * agent/tools/*.ts (see run_fix_worker.ts), sandbox in agent/sandbox/,
+ * telemetry in agent/instrumentation.ts.
  */
 export default defineAgent({
   model: agentModel,
-  // TODO(eve): additional runtime options (tool timeouts, sandbox config, max
-  // steps, approvals policy) are not documented verbatim in the public docs.
-  // After Eve upgrades, confirm the full option surface in node_modules/eve/docs/
-  // and extend this object accordingly.
 });

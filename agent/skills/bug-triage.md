@@ -45,6 +45,22 @@ Ask only for the missing facts that would change the next action:
 - Logs, screenshots, trace, or failing test output.
 - Whether auth, seed data, external services, or a specific account is needed.
 
+## Environment Needs
+
+Map what the reproduction requires before preparing the workdir:
+
+- UI/visual/browser symptoms (layout, clicks, hydration) → needs browser
+  checks; note that the run should set `RUN_BROWSER_CHECKS=1`.
+- Build/typecheck/test failures → plain checkout with install is enough.
+- Mentions of external services (database, auth provider, third-party API)
+  → flag it in the triage note; the repro may need mocks or will be partial.
+
+## Worker Choice
+
+- Honor an explicit worker in the command (`/repro codex`, `/fix claude`).
+- Otherwise use the default (`DEFAULT_WORKER`); do not switch workers
+  mid-issue — `/compare` exists for running both deliberately.
+
 ## Anti-Patterns
 
 - Do not invent reproduction steps.

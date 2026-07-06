@@ -34,7 +34,7 @@ Never commit or paste:
 - `.env`
 - `GITHUB_TOKEN`
 - `GITHUB_WEBHOOK_SECRET`
-- `GEMINI_API_KEY`
+- `AI_GATEWAY_API_KEY`
 - `GITHUB_PRIVATE_KEY`
 - Codex or Claude credentials
 - webhook payloads that include sensitive private repository data

@@ -17,12 +17,12 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@ai-sdk/google": "^3.0.83",
-    "eve": "^0.19.0",
+    "eve": "0.20.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
+    "just-bash": "^3.0.2",
     "microsandbox": "^0.5.7",
     "tsx": "^4.19.0",
     "typescript": "^5.6.0",

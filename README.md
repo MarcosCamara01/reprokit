@@ -105,6 +105,13 @@ tools. Reprokit still keeps `.runs/issue-<number>/repo` for Codex/Claude workers
 and the legacy CLI/webhook path, because those workers currently operate on host
 filesystem paths.
 
+The Eve runtime resolves the model (`AGENT_MODEL`, default
+`google/gemini-3.5-flash`) through Vercel AI Gateway: on Vercel it
+authenticates with OIDC; locally set `AI_GATEWAY_API_KEY`. To keep paying
+Google directly, register your Google key once in the dashboard (AI Gateway →
+Bring Your Own Key) — requests then use your key with no markup. The standalone
+webhook does not call a model at all.
+
 ## Requirements
 
 - Node.js 24 or newer
@@ -117,7 +124,8 @@ filesystem paths.
 - A public HTTPS URL for GitHub webhook delivery
 - Optional: Codex CLI, if you want `/fix codex`
 - Optional: Claude Code CLI, if you want `/fix claude`
-- Optional: Gemini API key, if you want to run the Eve runtime with `npm run dev`
+- Optional: AI Gateway key (or a linked Vercel project), if you want to run the
+  Eve runtime with `npm run dev`
 
 For local testing, the public HTTPS URL can be a tunnel such as Cloudflare Tunnel,
 ngrok, or localtunnel. For production, use a VPS or long-running service with a
@@ -178,8 +186,8 @@ Expected response:
 | `GITHUB_APP_PRIVATE_KEY` | Yes | PEM private key for the GitHub App. Escaped `\n` values are supported by Eve. | GitHub App private key download. |
 | `GITHUB_WEBHOOK_SECRET` | Yes | Shared secret used to verify GitHub App webhook signatures. | GitHub App webhook settings. |
 | `GITHUB_APP_SLUG` | Yes unless `botName` is configured in code | Bot slug used for `@mention` dispatch. | GitHub App settings URL/slug. |
-| `GEMINI_API_KEY` | Yes for the default model config | Google AI Studio / Gemini API key used by the Eve agent model. | Google AI Studio API key page. |
-| `AGENT_MODEL` | No | Gemini model name used by Eve. | Defaults to the value in `.env.example`. |
+| `AI_GATEWAY_API_KEY` | Yes for local `npm run dev` | Vercel AI Gateway key used to resolve the agent model. Not needed when deployed on Vercel (OIDC). To keep Google billing, register your Google key under AI Gateway → BYOK. | Vercel dashboard → AI Gateway → API Keys. |
+| `AGENT_MODEL` | No | Gateway model id used by Eve (e.g. `google/gemini-3.5-flash`). | Defaults to the value in `.env.example`. |
 | `GITHUB_APP_INSTALLATION_ID` | No | Optional installation id for local App-auth tool tests outside a GitHub-channel session. | GitHub App installation URL/API. |
 
 Point the GitHub App webhook URL at:
@@ -300,17 +308,22 @@ Put the value in two places:
 1. `.env` as `GITHUB_WEBHOOK_SECRET=...`
 2. GitHub repository webhook settings as `Secret`
 
-### `GEMINI_API_KEY`
+### `AI_GATEWAY_API_KEY`
 
 Only needed for `npm run dev` with the Eve runtime. It is not required for the
-standalone webhook path.
+standalone webhook path, and not required on Vercel (the deployment
+authenticates with OIDC).
 
-Create it in Google AI Studio, then set:
+Create it in the Vercel dashboard (AI Gateway → API Keys), then set:
 
 ```env
-GEMINI_API_KEY=your_key_here
-AGENT_MODEL=gemini-3.5-flash
+AI_GATEWAY_API_KEY=your_key_here
+AGENT_MODEL=google/gemini-3.5-flash
 ```
+
+To keep billing through your own Google account, add your Google key under
+AI Gateway → Bring Your Own Key (BYOK). Requests are routed with your key at
+no markup; no code or env changes needed.
 
 ### `CODEX_BIN`
 
@@ -434,7 +447,8 @@ npx eve eval
 ```
 
 The eval suite lives in `evals/` and uses `mockModel` through
-`REPROKIT_EVAL_MOCK_MODEL=1`, so it does not need Gemini or GitHub credentials.
+`REPROKIT_EVAL_MOCK_MODEL=1`, so it does not need a model API key or GitHub
+credentials.
 It covers the main safety invariants: `/repro` never opens PRs, failed checks
 block PR creation, insufficient issues ask for details, redaction happens before
 comments, hard stops ask for a human decision, and the native GitHub channel is

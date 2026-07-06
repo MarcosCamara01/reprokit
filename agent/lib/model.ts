@@ -1,16 +1,19 @@
-import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { mockModel, type MockModelRequest, type MockModelResponse } from "eve/evals";
 import { loadLocalEnv } from "../../src/utils/load-env.ts";
 
 loadLocalEnv();
 
-const apiKey =
-  process.env.GOOGLE_GENERATIVE_AI_API_KEY ||
-  process.env.GEMINI_API_KEY ||
-  process.env.GOOGLE_API_KEY;
+/**
+ * Model strings resolve through Vercel AI Gateway: OIDC when deployed on
+ * Vercel, AI_GATEWAY_API_KEY when running locally. Provider keys (e.g. your
+ * Google API key) are configured once in the dashboard via BYOK.
+ * Docs: https://vercel.com/docs/ai-gateway
+ */
+const raw = process.env.AGENT_MODEL || "google/gemini-3.5-flash";
 
-const modelId = (process.env.AGENT_MODEL || "gemini-3.5-flash").replace(/^google\//, "");
-const google = createGoogleGenerativeAI(apiKey ? { apiKey } : undefined);
+// Accept bare model ids from older .env files ("gemini-3.5-flash").
+const gatewayModelId = raw.includes("/") ? raw : `google/${raw}`;
+const modelId = gatewayModelId.replace(/^google\//, "");
 
 type ParsedCommand = { type: string; provider?: string };
 
@@ -119,4 +122,4 @@ export const agentModel =
         provider: "google",
         respond: evalMockResponse,
       })
-    : google(modelId);
+    : gatewayModelId;
