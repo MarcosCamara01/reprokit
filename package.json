@@ -1,32 +1,23 @@
 {
-  "name": "reprokit",
-  "version": "0.1.0",
+  "name": "atrium",
   "private": true,
-  "description": "Issue Repro & Fix Agent — turns vague bug reports into reproducible evidence and safe fix PRs. Built on Vercel Eve.",
-  "type": "module",
+  "packageManager": "pnpm@10.15.1",
   "engines": {
-    "node": ">=24.0.0"
+    "node": ">=22"
   },
   "scripts": {
-    "dev": "eve dev",
-    "build": "eve build",
-    "webhook": "tsx src/server.ts",
-    "cli": "tsx src/cli.ts",
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "test:watch": "vitest"
-  },
-  "dependencies": {
-    "eve": "0.20.0",
-    "zod": "^4.4.3"
+    "dev": "turbo run dev --filter=@atrium/web",
+    "build": "turbo run build",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "db:generate": "pnpm --filter @atrium/db generate",
+    "db:push": "pnpm --filter @atrium/db push",
+    "db:studio": "pnpm --filter @atrium/db studio"
   },
   "devDependencies": {
-    "@types/node": "^22.0.0",
-    "just-bash": "^3.0.2",
-    "microsandbox": "^0.5.7",
-    "tsx": "^4.19.0",
-    "typescript": "^5.6.0",
-    "vite": "^8.0.16",
-    "vitest": "^4.1.9"
+    "turbo": "^2.5.8",
+    "typescript": "^5.9.2",
+    "@types/node": "^22.18.1"
   }
 }

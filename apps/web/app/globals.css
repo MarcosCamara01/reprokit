@@ -1,0 +1,5 @@
+@import "tailwindcss";
+@import "@atrium/ui/styles.css";
+
+@source "../../../packages/ui/src/**/*.{ts,tsx}";
+@source "./**/*.{ts,tsx}";

@@ -1,0 +1,32 @@
+{
+  "name": "@atrium/runtime",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Local supervisor + Eve jobs channel.",
+  "bin": {
+    "atrium": "./bin/atrium.mjs"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "supervisor": "tsx src/cli.ts supervisor",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "eve:dev": "eve dev --host 127.0.0.1 --port 2000 --no-ui"
+  },
+  "dependencies": {
+    "@atrium/domain": "workspace:*",
+    "@atrium/harness": "workspace:*",
+    "ai": "^7.0.94",
+    "eve": "^0.52.2",
+    "tsx": "^4.20.5",
+    "zod": "^4.5.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.18.1",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  }
+}

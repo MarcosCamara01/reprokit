@@ -1,0 +1,30 @@
+{
+  "name": "@atrium/db",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./schema": "./src/schema/index.ts",
+    "./client": "./src/client.ts"
+  },
+  "scripts": {
+    "generate": "drizzle-kit generate",
+    "push": "drizzle-kit push",
+    "studio": "drizzle-kit studio",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@atrium/domain": "workspace:*",
+    "@neondatabase/serverless": "^1.0.1",
+    "drizzle-orm": "^0.44.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.18.1",
+    "dotenv": "^16.6.1",
+    "drizzle-kit": "^0.31.4",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  }
+}

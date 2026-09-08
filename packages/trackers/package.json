@@ -1,0 +1,21 @@
+{
+  "name": "@atrium/trackers",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@atrium/domain": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.18.1",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  }
+}

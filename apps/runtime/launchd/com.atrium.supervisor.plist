@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>Label</key>
+    <string>com.atrium.supervisor</string>
+    <key>ProgramArguments</key>
+    <array>
+      <string>/usr/bin/env</string>
+      <string>pnpm</string>
+      <string>--filter</string>
+      <string>@atrium/runtime</string>
+      <string>supervisor</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>/Users/YOU/proyectos/reprokit</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+      <key>ATRIUM_URL</key>
+      <string>https://YOUR-APP.vercel.app</string>
+    </dict>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>/usr/local/var/log/atrium-supervisor.log</string>
+    <key>StandardErrorPath</key>
+    <string>/usr/local/var/log/atrium-supervisor.err</string>
+  </dict>
+</plist>

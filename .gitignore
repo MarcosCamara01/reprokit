@@ -2,18 +2,35 @@ node_modules/
 .env
 .env.local
 .env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
 
-# Per-issue agent run workspaces (clones, logs, reports). Never commit these.
+# Next.js
+.next/
+out/
+
+# Turbo
+.turbo/
+
+# Runtime worktrees and local run artifacts
 .runs/
+worktrees/
 
-# Local Claude Code overrides (personal full-access mode — do not commit)
-.claude/settings.local.json
-
-# Build / tooling
+# Build
 dist/
 .output/
-.eve/
-.workflow-data/
 .vercel/
-*.log
+*.tsbuildinfo
+
+# Tooling
 .DS_Store
+*.log
+.pnpm-debug.log*
+.claude/settings.local.json
+.eve/
+
+# OS / editors
+.idea/
+.vscode/*
+!.vscode/extensions.json

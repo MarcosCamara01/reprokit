@@ -1,0 +1,317 @@
+{
+  "version": 1,
+  "skills": {
+    "academy-guide": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "skillPath": "skills/academy-guide/SKILL.md",
+      "computedHash": "07075be5acc7c54fd6b06a1e7636608fa195b83eb98cbddb02e61b9ac1356889"
+    },
+    "add-neon-docs": {
+      "source": "neondatabase/ai-rules",
+      "sourceType": "github",
+      "skillPath": "neon-plugin/skills/add-neon-docs/SKILL.md",
+      "computedHash": "967db951c7716b8e362f1f91631bb041a3369bd277af3e706ded6a39dd0eae98"
+    },
+    "ai-elements": {
+      "source": "vercel/ai-elements",
+      "sourceType": "github",
+      "skillPath": "skills/ai-elements/SKILL.md",
+      "computedHash": "6d7ccc65b98adb04d6c47632746dbfea55528903de9b027f6b39b80983d5aa55"
+    },
+    "algorithmic-art": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "skillPath": "skills/algorithmic-art/SKILL.md",
+      "computedHash": "b2ca295de7f9c86c444f1fa21239e22e0eb7013ced1c652169b9402cc96ff744"
+    },
+    "better-auth-best-practices": {
+      "source": "better-auth/skills",
+      "sourceType": "github",
+      "skillPath": "better-auth/best-practices/SKILL.md",
+      "computedHash": "0c30be0e118c2b7a0c4c57bd9e63bf110c7e420a79ec6ce7997153f3b1e066ee"
+    },
+    "better-auth-security-best-practices": {
+      "source": "better-auth/skills",
+      "sourceType": "github",
+      "skillPath": "security/SKILL.md",
+      "computedHash": "7a230edf3a24ce18162cb4379f59b6a19b8d24ca04db530609d0f15cede556dc"
+    },
+    "brand-guidelines": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "skillPath": "skills/brand-guidelines/SKILL.md",
+      "computedHash": "e48840db6ea772ceecdb68b4e50f8cc77e2534b7580aeaf4a6fe6ee7bd845d7d"
+    },
+    "building-components": {
+      "source": "vercel/components.build",
+      "sourceType": "github",
+      "skillPath": "skills/building-components/SKILL.md",
+      "computedHash": "20889af7cb9b3abca1e38824f7fffaa873eb0cc4d45187967b97bd85462cf934"
+    },
+    "canvas-design": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "skillPath": "skills/canvas-design/SKILL.md",
+      "computedHash": "3fa7ea60170023ad8268bf9fd734ea75dd404279a2ef8ddf5abaa1102ad8e5f4"
+    },
+    "claude-api": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "skillPath": "skills/claude-api/SKILL.md",
+      "computedHash": "4478d226e518204927cabc53f0a6b14ae0fae6f9cc9a73adee84e3306550cef0"
+    },
+    "create-auth": {
+      "source": "better-auth/skills",
+      "sourceType": "github",
+      "skillPath": "better-auth/create-auth/SKILL.md",
+      "computedHash": "9a9b498bc144367b8e237233f89def63fb2bd69e8cafe173eaa58fe3a863cdc4"
+    },
+    "deploy-to-vercel": {
+      "source": "vercel-labs/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/deploy-to-vercel/SKILL.md",
+      "computedHash": "d2b5bcc7c09fdb649129ffc7dd7b647ec1b155736974b974292675afd588cb39"
+    },
+    "discernment-nudge": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "skillPath": "skills/discernment-nudge/SKILL.md",
+      "computedHash": "fbe8fab770e8e106623525caa342bd2a4c84992cb840377cb57d4365be599be8"
+    },
+    "doc-coauthoring": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "skillPath": "skills/doc-coauthoring/SKILL.md",
+      "computedHash": "b964e4c3ffe13f66f76dd7919073e60c7aec622cd8a8363bb36323188100cf8e"
+    },
+    "docx": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "skillPath": "skills/docx/SKILL.md",
+      "computedHash": "59c70107f8eae818bdfca7da685a6e4111aa519638b667775b794cb74987ec47"
+    },
+    "email-and-password-best-practices": {
+      "source": "better-auth/skills",
+      "sourceType": "github",
+      "skillPath": "better-auth/emailAndPassword/SKILL.md",
+      "computedHash": "863886759f729081e265941f4f72c503835d55a1f34f6d63cebe6571159fff4a"
+    },
+    "eve": {
+      "source": "vercel/eve",
+      "sourceType": "github",
+      "skillPath": "skills/eve/SKILL.md",
+      "computedHash": "4833349453c45c606f79202e495b7bbc42ea380f329f3beee36b9927763f19ef"
+    },
+    "frontend-design": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "skillPath": "skills/frontend-design/SKILL.md",
+      "computedHash": "89496d5dd00f4810205f351759594fc2742bf8eea85a2f2b2d1de59f4bd91576"
+    },
+    "gh-pr-description": {
+      "source": "vercel/eve",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/gh-pr-description/SKILL.md",
+      "computedHash": "c658a2679e9cf12a018997db5a9ca7972fbe3899f71021e5587f6734dd251445"
+    },
+    "internal-comms": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "skillPath": "skills/internal-comms/SKILL.md",
+      "computedHash": "0bdc8867452b7ab9ef6167f6b0db2025ce5fb03773d3f85efcef2dfeb9d4976d"
+    },
+    "mcp-builder": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "skillPath": "skills/mcp-builder/SKILL.md",
+      "computedHash": "826e46adf81e1372282e205c34e1a2ee876e72148007726e4a2512599d2fef7b"
+    },
+    "migrate-radix-to-base": {
+      "source": "shadcn/ui",
+      "sourceType": "github",
+      "skillPath": "skills/migrate-radix-to-base/SKILL.md",
+      "computedHash": "e1f2030ee5059be3dff0812ca0e4b995ee9fa3132176f049ebe6c90346a6755e"
+    },
+    "neon-auth": {
+      "source": "neondatabase/ai-rules",
+      "sourceType": "github",
+      "skillPath": "neon-plugin/skills/neon-auth/SKILL.md",
+      "computedHash": "693fd76e8fbd52c28b73537dda48d222d360f1c4691ca7dc321e70c989ecbd79"
+    },
+    "neon-drizzle": {
+      "source": "neondatabase/ai-rules",
+      "sourceType": "github",
+      "skillPath": "neon-plugin/skills/neon-drizzle/SKILL.md",
+      "computedHash": "3dc145538f2ffe9b69adc6c6b4f5afa4f1dd2e5910cb2b4d812b05969f8b2fb6"
+    },
+    "neon-js": {
+      "source": "neondatabase/ai-rules",
+      "sourceType": "github",
+      "skillPath": "neon-plugin/skills/neon-js/SKILL.md",
+      "computedHash": "a1b48737ba3938509b8b2a3a75ca94fafdcd5f807889d4d21d5ab8c78ca5092a"
+    },
+    "neon-serverless": {
+      "source": "neondatabase/ai-rules",
+      "sourceType": "github",
+      "skillPath": "neon-plugin/skills/neon-serverless/SKILL.md",
+      "computedHash": "f794fe4423480badd6de590cce025dda73ba4051fb0389c3ee2bfa06d38b6763"
+    },
+    "neon-toolkit": {
+      "source": "neondatabase/ai-rules",
+      "sourceType": "github",
+      "skillPath": "neon-plugin/skills/neon-toolkit/SKILL.md",
+      "computedHash": "4dbdd33f318062d6e901c183a2f9007ab1f0334a3dfa2cee7ba3cc3b0fe3acc9"
+    },
+    "next-best-practices": {
+      "source": "vercel-labs/openreview",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/next-best-practices/SKILL.md",
+      "computedHash": "db85045827ebeb83ac8dbc992b69188755eeb74dcf01cbf5e694d58aa494a106"
+    },
+    "next-cache-components": {
+      "source": "vercel-labs/openreview",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/next-cache-components/SKILL.md",
+      "computedHash": "f835d8226c28abf012cc013928e2627c8a7a046de61127ef229be1711bd1f255"
+    },
+    "organization-best-practices": {
+      "source": "better-auth/skills",
+      "sourceType": "github",
+      "skillPath": "better-auth/organization/SKILL.md",
+      "computedHash": "8c85e683dabef4532f1e8b67bbed5c453d39e0e3d5aeedd69d16b568f6e6d44f"
+    },
+    "pdf": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "skillPath": "skills/pdf/SKILL.md",
+      "computedHash": "cfbc539377088ca7e44a813b30c306327385bbd973cd7a721e1743f60837dd62"
+    },
+    "pptx": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "skillPath": "skills/pptx/SKILL.md",
+      "computedHash": "82eaf5daede5a1779aa17ccf06597cb209a0c2bd41d3a2f18bd45e0301a387fb"
+    },
+    "shadcn": {
+      "source": "shadcn/ui",
+      "sourceType": "github",
+      "skillPath": "skills/shadcn/SKILL.md",
+      "computedHash": "f615de216e085a84e31593ad0fa9062232adc40cd87b7c7ab2b8e49abf6500be"
+    },
+    "skill-creator": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "skillPath": "skills/skill-creator/SKILL.md",
+      "computedHash": "5ea13a6d9f0d4bb694405d79acd00cadec0d21bb138c4dd10fcf3c500cb835c2"
+    },
+    "slack-gif-creator": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "skillPath": "skills/slack-gif-creator/SKILL.md",
+      "computedHash": "fab4fcfcaed371071069d61a3ab94dff15d10d36403ff269d147ea986cd98083"
+    },
+    "streamdown": {
+      "source": "vercel/streamdown",
+      "sourceType": "github",
+      "skillPath": "skills/streamdown/SKILL.md",
+      "computedHash": "2f8292ddf03ef22a271acb22c852f06ea9105d05d000adbbf2d21b4bd71c7447"
+    },
+    "technical-writing": {
+      "source": "vercel/eve",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/technical-writing/SKILL.md",
+      "computedHash": "99be8fec19ea801cc708abea5d3a1ffa1fecc76c52cff90c1dfc45e39271a092"
+    },
+    "template-skill": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "skillPath": "template/SKILL.md",
+      "computedHash": "38c88f722b574a922311d334a70c2008a2a5b896f06eaa75516d716e5725b26f"
+    },
+    "theme-factory": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "skillPath": "skills/theme-factory/SKILL.md",
+      "computedHash": "598ddfa9784ae2a8c55be5dbb047b98564d875dea6f4669168a87ae1ea1a4ed3"
+    },
+    "turborepo": {
+      "source": "vercel/turborepo",
+      "sourceType": "github",
+      "skillPath": "skills/turborepo/SKILL.md",
+      "computedHash": "4289866858fc5314e10ca21584d00c48ddb7e6bc353e262283958f8e4b9bec87"
+    },
+    "two-factor-authentication-best-practices": {
+      "source": "better-auth/skills",
+      "sourceType": "github",
+      "skillPath": "better-auth/twoFactor/SKILL.md",
+      "computedHash": "5bc3051aef5060db013f0b3cbe812c40dbae5c22d6ba3ddde4b941158362a197"
+    },
+    "vercel-cli-with-tokens": {
+      "source": "vercel-labs/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/vercel-cli-with-tokens/SKILL.md",
+      "computedHash": "a2f596ac516fe8986386f9562f4c94604af9fb6a0fc417d263cbe6dc05117b72"
+    },
+    "vercel-composition-patterns": {
+      "source": "vercel-labs/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/composition-patterns/SKILL.md",
+      "computedHash": "f98931159fa9c7fed043bcd18a891a46dcf89ababa38df13a4c5b7b30dc0ce07"
+    },
+    "vercel-optimize": {
+      "source": "vercel-labs/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/vercel-optimize/SKILL.md",
+      "computedHash": "9d4ace02972b9b1c462f097c7322eb32c9f04bba6f2fb5cf482086d402eeec33"
+    },
+    "vercel-react-best-practices": {
+      "source": "vercel-labs/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/react-best-practices/SKILL.md",
+      "computedHash": "3219a1944e404ffc14d1d9d6aef6dd2e3855b81387ee0a044ccbfe14d34c2357"
+    },
+    "vercel-react-native-skills": {
+      "source": "vercel-labs/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/react-native-skills/SKILL.md",
+      "computedHash": "2e9088a7333666d8c2833b8ff58bd51b955501c42b4c7244f72b4cbf22dafcc4"
+    },
+    "vercel-react-view-transitions": {
+      "source": "vercel-labs/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/react-view-transitions/SKILL.md",
+      "computedHash": "73fddafed488c308ee0799178432801fe10aa338451948ea05f4200541053040"
+    },
+    "web-artifacts-builder": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "skillPath": "skills/web-artifacts-builder/SKILL.md",
+      "computedHash": "d52d422ead3fa26859a6af129609841a8536b230a2d649f86e61771d063e05e2"
+    },
+    "web-design-guidelines": {
+      "source": "vercel-labs/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/web-design-guidelines/SKILL.md",
+      "computedHash": "a6a44d5498f7e8f68289902f3dedfc6f38ae0cee1e96527c80724cf27f727c2a"
+    },
+    "webapp-testing": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "skillPath": "skills/webapp-testing/SKILL.md",
+      "computedHash": "ad5b1fc52807e9afa4635e59218a026b164dc58b6c3f41b0f7c644dcd6ccf572"
+    },
+    "writing-guidelines": {
+      "source": "vercel-labs/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/writing-guidelines/SKILL.md",
+      "computedHash": "e90462d4f801d823603b12c345ad0ff91a7489415274432681d21c7129123c26"
+    },
+    "xlsx": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "skillPath": "skills/xlsx/SKILL.md",
+      "computedHash": "f5945e6e76dc7c178375e5cdf3140959b30cbcd4570ec3dc62296812259fc38d"
+    }
+  }
+}

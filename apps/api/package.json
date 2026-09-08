@@ -1,0 +1,27 @@
+{
+  "name": "@atrium/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./github": "./src/github/index.ts",
+    "./linear": "./src/linear/index.ts",
+    "./runtime": "./src/runtime/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@atrium/db": "workspace:*",
+    "@atrium/domain": "workspace:*",
+    "@atrium/trackers": "workspace:*",
+    "jose": "^6.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.18.1",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  }
+}

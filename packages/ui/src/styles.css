@@ -1,0 +1,59 @@
+@theme {
+  --font-sans: var(--font-ibm-plex-sans), "IBM Plex Sans", ui-sans-serif, system-ui,
+    sans-serif;
+  --font-mono: var(--font-ibm-plex-mono), "IBM Plex Mono", ui-monospace, monospace;
+
+  --color-background: #101114;
+  --color-foreground: #ececec;
+  --color-card: #18191f;
+  --color-card-foreground: #ececec;
+  --color-popover: #1c1d24;
+  --color-popover-foreground: #ececec;
+  --color-primary: #7c9cbf;
+  --color-primary-foreground: #101114;
+  --color-secondary: #22232b;
+  --color-secondary-foreground: #ececec;
+  --color-muted: #22232b;
+  --color-muted-foreground: #9a9ba3;
+  --color-accent: #22232b;
+  --color-accent-foreground: #ececec;
+  --color-destructive: #d46770;
+  --color-destructive-foreground: #101114;
+  --color-border: #2a2b33;
+  --color-input: #2a2b33;
+  --color-ring: #7c9cbf;
+
+  --color-status-needs-info: #c9956c;
+  --color-status-awaiting: #b7a3d9;
+  --color-status-queued: #6f717a;
+  --color-status-running: #7c9cbf;
+  --color-status-pr: #6fafb2;
+  --color-status-done: #7a9e7e;
+  --color-status-failed: #d46770;
+  --color-status-cancelled: #6f717a;
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "ss01" on, "cv11" on;
+  }
+
+  button:not(:disabled),
+  [href],
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+}
