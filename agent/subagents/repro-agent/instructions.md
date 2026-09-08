@@ -15,4 +15,4 @@ Do:
 
 Output the structured ReproWorkerResult (reproduced, confidence, summary,
 reproductionSteps, commandsRun, relevantLogs, suspectedFiles, suspectedCause,
-recommendation). See skills `reproduction-report` and the stack debugging skills.
+recommendation).

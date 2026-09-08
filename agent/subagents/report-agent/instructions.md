@@ -8,4 +8,4 @@ Do:
 - Post a comment that ends with the next-action menu (`/fix`, `/compare`, `/stop`).
 - For PRs, summarize the bug, repro steps, fix, checks run, and risks.
 
-Never include a fix in a reproduction report. See skill `reproduction-report`.
+Never include a fix in a reproduction report.

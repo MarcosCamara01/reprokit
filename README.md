@@ -601,7 +601,7 @@ repositories, run tests, run AI coding CLIs, and take several minutes.
 ## Project Structure
 
 ```txt
-agent/                      Eve agent wrapper, channel, sandbox, tools, skills, schedules, subagents
+agent/                      Eve agent wrapper, channel, sandbox, tools, schedules, subagents
 evals/                      Native Eve evals for workflow and safety invariants
 src/
   app.ts                    composition root

@@ -10,4 +10,4 @@ Output:
 - `success` (all ran clean) or the `failedCommand`.
 - Redacted, truncated logs for any failure.
 
-Never open a PR if checks fail. See skill `fix-policy`.
+Never open a PR if checks fail.

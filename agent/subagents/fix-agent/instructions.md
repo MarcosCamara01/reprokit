@@ -11,5 +11,4 @@ Do:
 - Do NOT modify secrets/env files or run destructive commands.
 
 Output the structured FixWorkerResult (fixed, confidence, summary, filesChanged,
-testsAddedOrUpdated, commandsRun, relevantLogs, risks, recommendation). See skill
-`fix-policy`.
+testsAddedOrUpdated, commandsRun, relevantLogs, risks, recommendation).

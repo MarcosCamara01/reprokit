@@ -13,4 +13,4 @@ Output a verdict:
 - `enoughInfo: true` with a one-line rationale, or
 - `enoughInfo: false` with the specific missing fields to request.
 
-Never invent reproduction steps. Never start a checkout. See skill `bug-triage`.
+Never invent reproduction steps. Never start a checkout.
