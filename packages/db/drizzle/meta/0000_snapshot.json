@@ -463,7 +463,7 @@
         },
         "trigger": {
           "name": "trigger",
-          "type": "trigger",
+          "type": "run_trigger",
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true
@@ -2042,8 +2042,8 @@
         "linear_agent"
       ]
     },
-    "public.trigger": {
-      "name": "trigger",
+    "public.run_trigger": {
+      "name": "run_trigger",
       "schema": "public",
       "values": [
         "slash",

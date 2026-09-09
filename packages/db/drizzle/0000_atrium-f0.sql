@@ -11,7 +11,7 @@ CREATE TYPE "public"."spec_status" AS ENUM('draft', 'in_review', 'approved', 're
 CREATE TYPE "public"."ticket_kind" AS ENUM('bug', 'spec', 'unknown');--> statement-breakpoint
 CREATE TYPE "public"."ticket_provider" AS ENUM('github', 'linear');--> statement-breakpoint
 CREATE TYPE "public"."tracker_kind" AS ENUM('github_app', 'linear_oauth', 'linear_agent');--> statement-breakpoint
-CREATE TYPE "public"."trigger" AS ENUM('slash', 'web', 'linear_delegate', 'label', 'api');--> statement-breakpoint
+CREATE TYPE "public"."run_trigger" AS ENUM('slash', 'web', 'linear_delegate', 'label', 'api');--> statement-breakpoint
 CREATE TABLE "account" (
 	"id" text PRIMARY KEY NOT NULL,
 	"account_id" text NOT NULL,
@@ -77,7 +77,7 @@ CREATE TABLE "agent_run" (
 	"harness" "harness" NOT NULL,
 	"status" "agent_run_status" DEFAULT 'queued' NOT NULL,
 	"phase" "agent_run_phase",
-	"trigger" "trigger" NOT NULL,
+	"trigger" "run_trigger" NOT NULL,
 	"pr_url" text,
 	"branch_name" text,
 	"error_summary" text,

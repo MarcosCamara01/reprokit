@@ -90,7 +90,8 @@ export const pipelineEnum = pgEnum("pipeline", [
 
 export const harnessEnum = pgEnum("harness", ["claude", "codex", "cursor"]);
 
-export const triggerEnum = pgEnum("trigger", [
+// Postgres rejects a column typed as `trigger` (reserved pseudo-type).
+export const triggerEnum = pgEnum("run_trigger", [
   "slash",
   "web",
   "linear_delegate",
